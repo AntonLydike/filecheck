@@ -1,0 +1,12 @@
+// RUN: ./strip-comments.sh %s | filecheck %s
+test
+
+// CHECK: A
+// CHECK-SAME: X
+A X
+// CHECK-EMPTY:
+
+B
+// CHECK-NEXT: B
+
+suffix

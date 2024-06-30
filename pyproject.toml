@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "filecheck"
+version = "0.1.0"
+description = "A Python-native clone of LLVMs FileCheck tool"
+authors = ["Anton Lydike <me@antonlydike.de>"]
+license = "GPLv3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+pyright = "^1.1.369"
+lit = "^18.1.8"
+
+[tool.poetry.scripts]
+filecheck = "filecheck.main:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

@@ -1,0 +1,6 @@
+// RUN: ./strip-comments.sh %s | filecheck %s
+
+assign x
+// CHECK: assign [[VAR:[a-z]+]]
+print x
+// CHECK: print [[VAR]]
