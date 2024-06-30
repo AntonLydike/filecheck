@@ -2,7 +2,7 @@ import re
 from typing import Callable
 
 POSIX_REGEXP_PATTERN = re.compile(
-    r"\[:(alpha|upper|lower|digit|alnum|xdigit|space|blank|print|punct|graph|word|ascii|cntrl):\]"
+    r"\[:(alpha|upper|lower|digit|alnum|xdigit|space|blank|print|punct|graph|word|ascii|cntrl):]"
 )
 POSIX_REGEXP_REPLACEMENTS = {
     "alpha": "[A-Za-z]",
@@ -18,7 +18,12 @@ POSIX_REGEXP_REPLACEMENTS = {
 
 
 def posix_to_python_regex(expr: str) -> str:
-    while (match := POSIX_REGEXP_PATTERN.match(expr)) is not None:
+    """
+    We need to translate things like `[:alpha:]` to `[A-Za-z]`, etc.
+
+    LLVM supports them, but pythons regex doesn't.
+    """
+    while (match := POSIX_REGEXP_PATTERN.search(expr)) is not None:
         if match.group(1) not in POSIX_REGEXP_REPLACEMENTS:
             raise ValueError(
                 f"Can't translate posix regex, unknown character set: {match.group(1)}"

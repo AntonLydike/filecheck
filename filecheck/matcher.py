@@ -15,11 +15,17 @@ class Context:
     """
     A context object, carrying life variables and such
     """
+
     live_variables: dict[str, str | int] = field(default_factory=dict)
 
 
 @dataclass
 class Matcher:
+    """
+    The matcher contains the logic for applying the matching, recording variables and
+    advancing the file position accordingly.
+    """
+
     opts: Options
     file: FInput
     operations: Iterator[CheckOp]
@@ -30,11 +36,19 @@ class Matcher:
 
     @classmethod
     def from_opts(cls, opts: Options):
+        """
+        Construct a matcher form an options object.
+        """
         ops = Parser.from_opts(opts)
         fin = FInput.from_opts(opts)
         return Matcher(opts, fin, ops)
 
     def run(self) -> int:
+        """
+        Run the matching, returns the exit code of the program.
+
+        Prints a nice message when it fails.
+        """
         function_table: dict[str, Callable[[CheckOp], None]] = {
             "DAG": self.check_dag,
             "COUNT": self.check_count,
@@ -73,8 +87,12 @@ class Matcher:
         # and friends
         self.file.move_to(self.file.pos - 1)
 
-
     def match_immediately(self, op: CheckOp):
+        """
+        Check that the ops pattern is matched immediately.
+
+        Uses file.match
+        """
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         if match := self.file.match(pattern):
             print(
@@ -84,12 +102,19 @@ class Matcher:
             self.file.move_to(match.end(0))
 
             for var, group in repl.items():
-                print(f"assigning variable {var.name} from group {group} value {match.group(group)} ")
+                print(
+                    f"assigning variable {var.name} from group {group} value {match.group(group)} "
+                )
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
         else:
             raise CheckError(f"Couldn't match {op.arg}.")
 
     def match_eventually(self, op: CheckOp):
+        """
+        Check that the ops pattern is matched eventually.
+
+        Uses file.find
+        """
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         if match := self.file.find(pattern):
             print(
@@ -99,7 +124,9 @@ class Matcher:
             self.file.move_to(match.end())
 
             for var, group in repl.items():
-                print(f"assigning variable {var.name} from group {group} value {match.group(group)} ")
+                print(
+                    f"assigning variable {var.name} from group {group} value {match.group(group)} "
+                )
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
 
         else:
@@ -109,4 +136,7 @@ class Matcher:
         raise NotImplementedError()
 
     def fail_op(self, op: CheckOp):
+        """
+        Helper used for unknown operations. Should not occur as we check when parsing.
+        """
         raise RuntimeError(f"Unknown operation: {op}")

@@ -136,7 +136,7 @@ class Parser(Iterator[CheckOp]):
 
                 pattern = next_part[:-2]
                 uops.append(RE(posix_to_python_regex(pattern)))
-            else:
+            elif part != "":
                 uops.append(Literal(part))
         return uops
 
