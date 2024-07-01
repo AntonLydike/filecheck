@@ -78,8 +78,32 @@ class Matcher:
 
     def check_not(self, op: CheckOp):
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
-        if match := self.file.match(pattern):
+        if self.file.match(pattern) is not None:
             raise CheckError(f"Matched {op.check_line_repr()}")
+
+    def check_label(self, op: CheckOp):
+        """
+        https://llvm.org/docs/CommandGuide/FileCheck.html#the-check-label-directive
+
+        Looks for a uniquely identified line in the source file.
+
+        CHECK-LABEL: directives cannot contain variable definitions or uses.
+        """
+        pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
+        # match in whole file
+        matches = pattern.findall(self.file.content)
+        # check that we found exactly one match
+        if not matches:
+            raise CheckError(f"Couldn't match \"{op.arg}\".")
+        if len(matches) > 1:
+            raise CheckError(f"Non-unique {op.check_line_repr()} found")
+        # move to match, if it's not already matched.
+        match, = matches
+        new_pos = match.end(0)
+        if new_pos < self.file.pos:
+            raise CheckError("Label was already checked")
+
+        self.file.move_to(new_pos)
 
     def check_empty(self, op: CheckOp):
         # check immediately
@@ -109,7 +133,7 @@ class Matcher:
                 )
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
         else:
-            raise CheckError(f"Couldn't match {op.arg}.")
+            raise CheckError(f"Couldn't match \"{op.arg}\".")
 
     def match_eventually(self, op: CheckOp):
         """
@@ -132,10 +156,7 @@ class Matcher:
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
 
         else:
-            raise CheckError(f"Couldn't match {op.arg}.")
-
-    def check_label(self, op: CheckOp):
-        raise NotImplementedError()
+            raise CheckError(f"Couldn't match \"{op.arg}\".")
 
     def fail_op(self, op: CheckOp):
         """

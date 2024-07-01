@@ -23,7 +23,7 @@ def compile_uops(
     if check.name == "NEXT":
         expr.append(r"\n")
         if not opts.strict_whitespace:
-            expr.append(r"( \t)*")
+            expr.append(r"( |\t)*")
             groups += 1
     elif check.name == "SAME":
         expr.append("[^\n]*")
@@ -69,5 +69,9 @@ def compile_uops(
         elif isinstance(uop, NumSubst):
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
+
+    # make sure CHECK-LABEL consumes entire line
+    if check.name == "LABEL":
+        expr.append(r"[^\n]*")
 
     return re.compile("".join(expr)), captures

@@ -1,0 +1,27 @@
+// RUN: ./strip-comments.sh %s | filecheck %s
+
+region_a:
+    op 1
+    op 2
+    op 3
+
+// CHECK-LABEL: region_a:
+// CHECK-NEXT: op 1
+// CHECK-NEXT: op 2
+// CHECK-NEXT: op 3
+
+
+region_middle:
+    bad op
+
+
+region_b:
+    op a
+    op b
+    op c
+
+// CHECK-LABEL: region_b:
+// CHECK-NOT: bad op
+// CHECK-NEXT: op a
+// CHECK-NEXT: op b
+// CHECK-NEXT: op c
