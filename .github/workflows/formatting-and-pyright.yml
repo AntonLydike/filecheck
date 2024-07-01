@@ -29,7 +29,11 @@ jobs:
     - name: Run code formatting checks with pre-commit
       uses: pre-commit/action@v3.0.0
 
-    - name: Pyright
-      uses: jakebailey/pyright-action@v2
-      with:
-        version: PATH
+    - name: Install Dependencies
+      run: |
+        pip install poetry
+        poetry install
+
+    - name: Run Pyright
+      run: |
+        poetry run pyright
