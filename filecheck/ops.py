@@ -20,10 +20,6 @@ class CheckOp:
     source_line: int
     uops: list[UOp]
 
-    def __post_init__(self):
-        if self.name not in OP_KINDS:
-            raise RuntimeError(f"Unkown op: {self.name}")
-
     def check_line_repr(self, prefix: str = "CHECK"):
         return f"{prefix}{self._suffix()}: {self.arg}"
 

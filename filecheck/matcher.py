@@ -18,6 +18,14 @@ class Context:
 
     live_variables: dict[str, str | int] = field(default_factory=dict)
 
+    negative_matches_stack: list[CheckOp] = field(default_factory=list)
+    """
+    Keep a stack of CHECK-NOTs around, as we only know the range on which to match
+    once we hit the next non-negative check-line.
+    """
+
+    negative_matches_start: int | None = field(default=None)
+
 
 @dataclass
 class Matcher:
@@ -31,8 +39,6 @@ class Matcher:
     operations: Iterator[CheckOp]
 
     ctx: Context = field(default_factory=Context)
-
-    _in_dag: bool = field(default=False)
 
     @classmethod
     def from_opts(cls, opts: Options):
@@ -52,7 +58,7 @@ class Matcher:
         function_table: dict[str, Callable[[CheckOp], None]] = {
             "DAG": self.check_dag,
             "COUNT": self.check_count,
-            "NOT": self.check_not,
+            "NOT": self.enqueue_not,
             "EMPTY": self.check_empty,
             "NEXT": self.match_immediately,
             "SAME": self.match_immediately,
@@ -65,6 +71,7 @@ class Matcher:
                 checks += 1
                 self._pre_check(op)
                 function_table.get(op.name, self.fail_op)(op)
+                self._post_check(op)
             except CheckError as ex:
                 print(f"Error matching: {ex.message}")
                 op.print_source_repr(self.opts)
@@ -76,6 +83,9 @@ class Matcher:
                         self.file.print_line_with_current_pos(match.start(0))
 
                 return 1
+
+        # run the post-check one last time to make sure all NOT checks are taken care of.
+        self._post_check(CheckOp("NOP", "", -1, []))
         if checks == 0:
             print(
                 f"Error: No check strings found with prefix {self.opts.check_prefix}:"
@@ -87,16 +97,45 @@ class Matcher:
         if op.name == "NEXT":
             self.file.skip_to_end_of_line()
 
+    def _post_check(self, op: CheckOp):
+        if op.name != "NOT":
+            # work through CHECK-NOT checks
+            for check in self.ctx.negative_matches_stack:
+                self.check_not(check, self.ctx.negative_matches_start)
+            # reset the state
+            if self.ctx.negative_matches_stack:
+                self.ctx.negative_matches_start = None
+                self.ctx.negative_matches_stack = []
+
     def check_dag(self, op: CheckOp):
         raise NotImplementedError()
 
     def check_count(self, op: CheckOp):
         raise NotImplementedError()
 
-    def check_not(self, op: CheckOp):
-        pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
-        if self.file.match(pattern) is not None:
+    def check_not(self, op: CheckOp, start: int | None):
+        """
+        Check that op doesn't match between start and current position.
+        """
+        pattern, _ = compile_uops(op, self.ctx.live_variables, self.opts)
+        if start is None:
+            start = 0
+        start = min(start, self.file.start_of_line())
+        end = max(start, self.file.start_of_line())
+        if self.file.find_between(pattern, start, end):
             raise CheckError(f"Matched {op.check_line_repr()}")
+
+    def enqueue_not(self, op: CheckOp):
+        """
+        Enqueue a CHECK-NOT operation to be checked at a later time.
+
+        Since CHECK-NOT matches between the last matched line, and the next matched
+        line, we need to postpone matching until we know when the next checked line is.
+
+        """
+        if self.ctx.negative_matches_start is None:
+            self.ctx.negative_matches_start = self.file.pos
+        self.ctx.negative_matches_stack.append(op)
 
     def check_label(self, op: CheckOp):
         """
@@ -112,7 +151,7 @@ class Matcher:
         # check that we found exactly one match
         if not matches:
             raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
-        if len(matches) > 1:
+        if len(matches) != 1:
             raise CheckError(f"Non-unique {op.check_line_repr()} found")
         # move to match, if it's not already matched.
         (match,) = matches

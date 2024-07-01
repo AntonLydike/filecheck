@@ -1,0 +1,21 @@
+// RUN: ./strip-comments.sh %s | filecheck %s
+
+part_a:
+// CHECK: part_a:
+// CHECK-NOT: illegal
+legal
+legal
+
+part_b:
+// CHECK: part_b:
+// CHECK: illegal
+// CHECK-NOT: legal
+illegal
+
+part_c:
+// CHECK: part_c:
+// CHECK-NOT: illegal
+// CHECK: legal
+// CHECK: legal
+legal
+legal

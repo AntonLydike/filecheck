@@ -35,7 +35,7 @@ class FInput:
             f = sys.stdin
         else:
             f = open(opts.input_file, "r")
-        return FInput(opts.input_file, "\n" + f.read())
+        return FInput(opts.input_file, f.read())
 
     def advance_by(self, dist: int):
         """
@@ -71,6 +71,15 @@ class FInput:
         print(f"searching for {pattern}")
         return pattern.search(self.content, pos=self.pos)
 
+    def find_between(
+        self, pattern: re.Pattern, start: int, end: int
+    ) -> re.Match | None:
+        """
+        Find the first occurance of a pattern, might be far away.
+        """
+        print(f"searching for {pattern} in input[{start}:{end}]")
+        return pattern.search(self.content, pos=start, endpos=end)
+
     def print_line_with_current_pos(self, pos_override: int | None = None):
         """
         Print the current position in the input file.
@@ -84,11 +93,19 @@ class FInput:
             pos += 1
             next_newline_at = self.content.find("\n", pos)
 
-        last_newline_at = max(0, self.content.rfind("\n", 0, pos))
+        last_newline_at = self.start_of_line(pos)
         char_pos = pos - last_newline_at
         print(f"Matching at {fname}:{self.line_no}:{char_pos}")
         print(self.content[last_newline_at + 1 : next_newline_at])
         print(" " * (char_pos - 1), end="^\n")
+
+    def start_of_line(self, pos: int | None = None) -> int:
+        """
+        Find the start of the line at position pos (defaults to current position)
+        """
+        if pos is None:
+            pos = self.pos
+        return max(self.content.rfind("\n", 0, pos), 0)
 
     def skip_to_end_of_line(self):
         """
