@@ -77,7 +77,9 @@ class Matcher:
         raise NotImplementedError()
 
     def check_not(self, op: CheckOp):
-        raise NotImplementedError()
+        pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
+        if match := self.file.match(pattern):
+            raise CheckError(f"Matched {op.check_line_repr()}")
 
     def check_empty(self, op: CheckOp):
         # check immediately

@@ -9,4 +9,5 @@ A X
 B
 // CHECK-NEXT: B
 
+// CHECK-NOT: 404
 suffix

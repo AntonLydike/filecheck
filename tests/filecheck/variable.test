@@ -11,7 +11,8 @@ print y
 // CHECK: print [[VAR]]
 
 
-assign y
-// CHECK: {{(assign|alloc)(\(abc\))?}} [[VAR:[a-z]+]]
-print y
-// CHECK: print [[VAR]]
+assign z
+// CHECK: {{(assign|alloc)(\(abc\))?}} [[VAR2:[a-z]+]]
+print z
+// CHECK-NOT: print [[VAR]]
+// CHECK: print [[VAR2]]
