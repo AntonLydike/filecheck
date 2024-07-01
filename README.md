@@ -22,7 +22,7 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [ ] `--allow-unused-prefixes`
   - [X] `--input-file`
   - [ ] `--match-full-lines`
-  - [ ] `--strict-whitespace` (well, kinda. But not sure)
+  - [X] `--strict-whitespace` (Kinda? Seems to be working.)
   - [ ] `--ignore-case`
   - [ ] `--implicit-check-not`
   - [ ] `--dump-input`
@@ -54,8 +54,8 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [ ] Good error messages: I have some error messages, but could be a lot better
 - **Infrastructure:**
   - [X] Formatting: black
-  - [ ] Pyright: Almost passes rn
-  - [ ] `pre-commit`: Didn't get to it yet
-  - [ ] CI for formatting
+  - [X] Pyright: Almost passes rn
+  - [X] `pre-commit`: Didn't get to it yet
+  - [X] CI for formatting
 
 Open to PRs for any such features.
