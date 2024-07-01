@@ -71,12 +71,12 @@ class FInput:
         print(f"searching for {pattern}")
         return pattern.search(self.content, pos=self.pos)
 
-    def print_line_with_current_pos(self):
+    def print_line_with_current_pos(self, pos_override: int | None = None):
         """
         Print the current position in the input file.
         """
         fname = self.fname if self.fname != "-" else "stdin"
-        pos = self.pos
+        pos = self.pos if pos_override is None else pos_override
         next_newline_at = self.content.find("\n", pos)
 
         # print the next line if we are pointing at a line end.
@@ -89,3 +89,10 @@ class FInput:
         print(f"Matching at {fname}:{self.line_no}:{char_pos}")
         print(self.content[last_newline_at + 1 : next_newline_at])
         print(" " * (char_pos - 1), end="^\n")
+
+    def skip_to_end_of_line(self):
+        """
+        Move to the next \n token (might be at cursor already, then it's a nop)
+        """
+        next_newline = self.content.find("\n", self.pos)
+        self.move_to(next_newline)

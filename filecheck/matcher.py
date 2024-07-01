@@ -56,23 +56,36 @@ class Matcher:
             "EMPTY": self.check_empty,
             "NEXT": self.match_immediately,
             "SAME": self.match_immediately,
-            "LABEL": self.match_eventually,
+            "LABEL": self.check_label,
             "CHECK": self.match_eventually,
         }
         checks = 0
         for op in self.operations:
             try:
                 checks += 1
+                self._pre_check(op)
                 function_table.get(op.name, self.fail_op)(op)
             except CheckError as ex:
-                print(f"Error matching: {ex}")
+                print(f"Error matching: {ex.message}")
                 op.print_source_repr(self.opts)
                 self.file.print_line_with_current_pos()
+
+                if ex.pattern:
+                    if match := self.file.find(ex.pattern):
+                        print("Possible match at:")
+                        self.file.print_line_with_current_pos(match.start(0))
+
                 return 1
         if checks == 0:
-            print(f"Error: No check strings found with prefix {self.opts.check_prefix}:")
+            print(
+                f"Error: No check strings found with prefix {self.opts.check_prefix}:"
+            )
             return 2
         return 0
+
+    def _pre_check(self, op: CheckOp):
+        if op.name == "NEXT":
+            self.file.skip_to_end_of_line()
 
     def check_dag(self, op: CheckOp):
         raise NotImplementedError()
@@ -95,10 +108,10 @@ class Matcher:
         """
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         # match in whole file
-        matches = pattern.findall(self.file.content)
+        matches = tuple(pattern.finditer(self.file.content))
         # check that we found exactly one match
         if not matches:
-            raise CheckError(f'Couldn\'t match "{op.arg}".')
+            raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
         if len(matches) > 1:
             raise CheckError(f"Non-unique {op.check_line_repr()} found")
         # move to match, if it's not already matched.
@@ -141,7 +154,7 @@ class Matcher:
                 )
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
         else:
-            raise CheckError(f'Couldn\'t match "{op.arg}".')
+            raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
 
     def match_eventually(self, op: CheckOp):
         """
@@ -164,7 +177,7 @@ class Matcher:
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
 
         else:
-            raise CheckError(f'Couldn\'t match "{op.arg}".')
+            raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
 
     def fail_op(self, op: CheckOp):
         """

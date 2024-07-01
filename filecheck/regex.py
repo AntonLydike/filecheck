@@ -43,9 +43,13 @@ ENCODINGS_MAP = {
 def pattern_from_num_subst_spec(
     digits: str | None, encoding: str | None
 ) -> tuple[str, Callable[[str], int]]:
-    digits_expr = "*" if digits is None else f"{{{int(digits[1:])}}}"
+    digits_expr = "+" if digits is None else f"{{{int(digits[1:])}}}"
     if encoding is None:
         encoding = "u"
     return f"{ENCODINGS_MAP[encoding]}{digits_expr}", (
-        hex if encoding.lower() == "x" else int
+        hex_int if encoding.lower() == "x" else int
     )
+
+
+def hex_int(v: str):
+    return int(v, base=16)

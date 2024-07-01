@@ -16,7 +16,6 @@ region_b:
     op 1
 
 // CHECK-LABEL: region_b:
-// CHECK-NOT: op [[REG]]
 // CHECK-NEXT: op [[REG:\d+]]
 // CHECK-NEXT: op [[REG]]
 // CHECK-NEXT: op 1

@@ -5,14 +5,34 @@ assign x
 print x
 // CHECK: print [[VAR]]
 
+// check re-assignment
 assign y
 // CHECK: assign [[VAR:[a-z]+]]
 print y
 // CHECK: print [[VAR]]
 
+// check that we can use a varibale immediately
+same x x
+// CHECK: same [[VAR:[a-z]+]] [[VAR]]
 
+// check that capturing group madness works
 assign z
 // CHECK: {{(assign|alloc)(\(abc\))?}} [[VAR2:[a-z]+]]
 print z
 // CHECK-NOT: print [[VAR]]
 // CHECK: print [[VAR2]]
+
+// check for posix style regex
+same FF77 FF77
+// CHECK: [[VAR:[:xdigit:]+]] [[VAR]]
+
+// numeric captures:
+print 0xFF00FF00
+// CHECK: [[#%.8X,]]
+print 100
+// CHECK: [[#%.3,]]
+print -100 -100
+// CHECK: [[#%.3d,ARG:]] [[ARG]]
+
+mov r0, r1
+// CHECK: mov r0, r[[#]]

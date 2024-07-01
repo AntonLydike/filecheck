@@ -39,8 +39,8 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [ ] `--color` No color support yet
 - **Base Features:**
   - [X] Regex patterns
-  - [X] Captures and Capture Matches (partly untested)
-  - [X] Numeric Captures (untested)
+  - [X] Captures and Capture Matches
+  - [X] Numeric Captures
   - [ ] Numeric Substitutions (jesus christ, wtf man)
   - [X] Weird regex features (`[:xdigits:]` and friends)
   - [X] Correct(?) handling of matching check lines

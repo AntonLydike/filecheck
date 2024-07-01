@@ -13,7 +13,9 @@ from filecheck.regex import posix_to_python_regex, pattern_from_num_subst_spec
 
 def pattern_for_opts(opts: Options) -> re.Pattern:
     return re.compile(
-        "((" + "|".join(map(re.escape, opts.comment_prefixes)) + r"):)?[^\n]*"
+        "(("
+        + "|".join(map(re.escape, opts.comment_prefixes))
+        + r"):)?[^\n]*"
         + re.escape(opts.check_prefix)
         + r"(-(DAG|COUNT|NOT|EMPTY|NEXT|SAME|LABEL))?:\s?([^\n]*)\n?"
     )
@@ -112,7 +114,11 @@ class Parser(Iterator[CheckOp]):
                     part += parts.pop(0)
                 # check if we are a simple capture pattern [[<name>:<regex>]]
                 if match := VAR_CAPTURE_PATTERN.fullmatch(part):
-                    uops.append(Capture(match.group(1), match.group(2), str))
+                    uops.append(
+                        Capture(
+                            match.group(1), posix_to_python_regex(match.group(2)), str
+                        )
+                    )
                 # check if we are a simple substitution pattern: [[<<name>>]]
                 elif match := VAR_SUBST_PATTERN.fullmatch(part):
                     uops.append(Subst(match.group(1)))

@@ -21,7 +21,7 @@ def compile_uops(
     groups = 0
     expr: list[str] = []
     if check.name == "NEXT":
-        expr.append(r"[^\n]*\n[^\n]*")
+        expr.append(r"\n[^\n]*")
     elif check.name == "SAME":
         expr.append("[^\n]*")
     elif check.name == "EMPTY":
