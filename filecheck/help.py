@@ -7,6 +7,9 @@ FLAGS:
 --strict-whitespace                 : Don't ignore indentation
 --comment-prefixes <a>,<b>,<c>      : Ignore lines starting with these prefixes, even if
                                       they contain check lines (default RUN,COM)
+--enable-var-scope                  : Enables scope for regex variables.
+                                      Variables not starting with $ are deleted after
+                                      each CHECK-LABEL match.
 
 ARGUMENTS:
 check-file                          : The file from which the check lines are to be read

@@ -94,16 +94,20 @@ class Matcher:
         matches = pattern.findall(self.file.content)
         # check that we found exactly one match
         if not matches:
-            raise CheckError(f"Couldn't match \"{op.arg}\".")
+            raise CheckError(f'Couldn\'t match "{op.arg}".')
         if len(matches) > 1:
             raise CheckError(f"Non-unique {op.check_line_repr()} found")
         # move to match, if it's not already matched.
-        match, = matches
+        (match,) = matches
         new_pos = match.end(0)
         if new_pos < self.file.pos:
             raise CheckError("Label was already checked")
 
         self.file.move_to(new_pos)
+
+        # remove non $ variables if option is set
+        if self.opts.enable_var_scope:
+            self.purge_variables()
 
     def check_empty(self, op: CheckOp):
         # check immediately
@@ -133,7 +137,7 @@ class Matcher:
                 )
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
         else:
-            raise CheckError(f"Couldn't match \"{op.arg}\".")
+            raise CheckError(f'Couldn\'t match "{op.arg}".')
 
     def match_eventually(self, op: CheckOp):
         """
@@ -156,10 +160,18 @@ class Matcher:
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
 
         else:
-            raise CheckError(f"Couldn't match \"{op.arg}\".")
+            raise CheckError(f'Couldn\'t match "{op.arg}".')
 
     def fail_op(self, op: CheckOp):
         """
         Helper used for unknown operations. Should not occur as we check when parsing.
         """
         raise RuntimeError(f"Unknown operation: {op}")
+
+    def purge_variables(self):
+        """
+        Purge variables not starting with '$'
+        """
+        for key in tuple(self.ctx.live_variables.keys()):
+            if not key.startswith("$"):
+                self.ctx.live_variables.pop(key)

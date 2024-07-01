@@ -7,6 +7,7 @@ class Options:
     input_file: str = "-"
     check_prefix: str = "CHECK"
     strict_whitespace: bool = False
+    enable_var_scope: bool = False
     comment_prefixes: list[str] = "COM,RUN"
 
     def __post_init__(self):
