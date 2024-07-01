@@ -57,23 +57,23 @@ class FInput:
         self.line_no += sign * lines
         self.pos = new_pos
 
-    def match(self, pattern: re.Pattern) -> re.Match | None:
+    def match(self, pattern: re.Pattern[str]) -> re.Match[str] | None:
         """
         Match (exactly from the current position)
         """
         print(f"matching on {pattern}")
         return pattern.match(self.content, pos=self.pos)
 
-    def find(self, pattern: re.Pattern) -> re.Match | None:
+    def find(self, pattern: re.Pattern[str]) -> re.Match[str] | None:
         """
         Find the first occurance of a pattern, might be far away.
         """
-        print(f"searching for r\"{pattern.pattern}\"")
+        print(f'searching for r"{pattern.pattern}"')
         return pattern.search(self.content, pos=self.pos)
 
     def find_between(
-        self, pattern: re.Pattern, start: int, end: int
-    ) -> re.Match | None:
+        self, pattern: re.Pattern[str], start: int, end: int
+    ) -> re.Match[str] | None:
         """
         Find the first occurance of a pattern, might be far away.
         """

@@ -11,7 +11,7 @@ from filecheck.options import Options, parse_argv_options
 from filecheck.regex import posix_to_python_regex, pattern_from_num_subst_spec
 
 
-def pattern_for_opts(opts: Options) -> re.Pattern:
+def pattern_for_opts(opts: Options) -> re.Pattern[str]:
     return re.compile(
         "(("
         + "|".join(map(re.escape, opts.comment_prefixes))
@@ -53,7 +53,7 @@ class Parser(Iterator[CheckOp]):
 
     input: TextIO
 
-    check_line_regexp: re.Pattern
+    check_line_regexp: re.Pattern[str]
 
     _line: int = field(default=0)
 
@@ -103,7 +103,7 @@ class Parser(Iterator[CheckOp]):
 
         Returns a list of uops
         """
-        uops = []
+        uops: list[UOp] = []
         parts = LINE_SPLIT_RE.split(arg)
         while parts:
             part = parts.pop(0)

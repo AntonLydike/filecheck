@@ -9,7 +9,7 @@ class Options:
     check_prefix: str = "CHECK"
     strict_whitespace: bool = False
     enable_var_scope: bool = False
-    comment_prefixes: list[str] = "COM,RUN"
+    comment_prefixes: list[str] = "COM,RUN"  # type: ignore[reportAssignmentType]
 
     def __post_init__(self):
         # make sure we split the comment prefixes
@@ -18,7 +18,8 @@ class Options:
 
 
 def parse_argv_options(argv: list[str]) -> Options:
-    name = argv.pop(0)
+    # pop the name off of argv
+    _ = argv.pop(0)
 
     # final options to return
     opts = {}
@@ -55,7 +56,7 @@ def parse_argv_options(argv: list[str]) -> Options:
 
     opts["match_filename"] = argv[0]
 
-    return Options(**opts)
+    return Options(**opts)  # pyright: ignore[reportUnknownArgumentType]
 
 
 def normalise_args(argv: list[str]) -> Iterable[str]:

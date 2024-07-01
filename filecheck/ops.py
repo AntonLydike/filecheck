@@ -1,8 +1,6 @@
 from __future__ import annotations
-from abc import ABC
-from dataclasses import dataclass, field
-from enum import Enum, auto
-from typing import Iterable, Iterator, Callable
+from dataclasses import dataclass
+from typing import Callable
 
 from filecheck.options import Options
 

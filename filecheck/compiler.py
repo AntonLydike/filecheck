@@ -10,7 +10,7 @@ CHECK_EMPTY_EXPR = re.compile(r"[^\n]*\n\n")
 
 def compile_uops(
     check: CheckOp, variables: dict[str, str | int], opts: Options
-) -> tuple[re.Pattern, dict[Capture, int]]:
+) -> tuple[re.Pattern[str], dict[Capture, int]]:
     """
     Compile a series of uops, given a set of variables, to a regex pattern and an
     extraction dictionary.

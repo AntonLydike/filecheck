@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass, field
 from typing import Iterator, Callable
 
@@ -107,10 +106,10 @@ class Matcher:
                 self.ctx.negative_matches_start = None
                 self.ctx.negative_matches_stack = []
 
-    def check_dag(self, op: CheckOp):
+    def check_dag(self, op: CheckOp) -> None:
         raise NotImplementedError()
 
-    def check_count(self, op: CheckOp):
+    def check_count(self, op: CheckOp) -> None:
         raise NotImplementedError()
 
     def check_not(self, op: CheckOp, start: int | None):
@@ -145,7 +144,7 @@ class Matcher:
 
         CHECK-LABEL: directives cannot contain variable definitions or uses.
         """
-        pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
+        pattern, _ = compile_uops(op, self.ctx.live_variables, self.opts)
         # match in whole file
         matches = tuple(pattern.finditer(self.file.content))
         # check that we found exactly one match
