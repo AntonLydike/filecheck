@@ -8,6 +8,8 @@ A X
 
 B
 // CHECK-NEXT: B
+SOME B
+// CHECK-NEXT: B
 
 // CHECK-NOT: 404
 suffix
