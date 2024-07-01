@@ -35,7 +35,7 @@ class FInput:
             f = sys.stdin
         else:
             f = open(opts.input_file, "r")
-        return FInput(opts.input_file, f.read())
+        return FInput(opts.input_file, "\n" + f.read())
 
     def advance_by(self, dist: int):
         """

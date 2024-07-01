@@ -15,7 +15,7 @@ def pattern_for_opts(opts: Options) -> re.Pattern:
     return re.compile(
         r"(//|;|#) *"
         + re.escape(opts.check_prefix)
-        + r"(-(DAG|COUNT|NOT|EMPTY|NEXT|SAME|LABEL))?:([^\n]*)\n?"
+        + r"(-(DAG|COUNT|NOT|EMPTY|NEXT|SAME|LABEL))?:\s?([^\n]*)\n?"
     )
 
 

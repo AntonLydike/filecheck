@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Iterable
 
 
 @dataclass
@@ -23,16 +24,9 @@ def parse_argv_options(argv: list[str]) -> Options:
     opts = {}
     # args that were consumed
     remove: list[int] = []
+    argv = list(normalise_args(argv))
 
     for i, arg in enumerate(argv):
-        remainder = None
-        split = False
-        if '=' in arg:
-            split = True
-            arg, remainder = arg.split("=", 1)
-        elif len(argv) > i+1:
-            remainder = argv[i+1]
-
         if arg.startswith("--"):
             arg = arg[2:].replace("-", "_")
         elif arg.startswith("-"):
@@ -43,15 +37,13 @@ def parse_argv_options(argv: list[str]) -> Options:
             continue
 
         remove.append(i)
-        if remainder is not None and not split:
-            remove.append(i+1)
         if Options.__dataclass_fields__[arg].type == bool:
             opts[arg] = True
         else:
-            if remainder is None:
+            if i == len(argv) - 1:
                 raise RuntimeError("Out of range arguments")
-            opts[arg] = remainder
-
+            opts[arg] = argv[i + 1]
+            remove.append(i + 1)
 
     for idx in sorted(remove, reverse=True):
         argv.pop(idx)
@@ -64,3 +56,15 @@ def parse_argv_options(argv: list[str]) -> Options:
     opts["match_filename"] = argv[0]
 
     return Options(**opts)
+
+
+def normalise_args(argv: list[str]) -> Iterable[str]:
+    """
+    Normalize arguments by splitting "--key=value" pairs into separate "--key" and
+    "value" entries.
+    """
+    for arg in argv:
+        if arg.startswith("-") and "=" in arg:
+            yield from arg.split("=", 1)
+        else:
+            yield arg

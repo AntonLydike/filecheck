@@ -33,7 +33,17 @@ def compile_uops(
     for uop in check.uops:
         if isinstance(uop, Literal):
             # literals are matched as is
-            expr.append(re.escape(uop.content))
+            if opts.strict_whitespace:
+                expr.append(re.escape(uop.content))
+            else:
+                # TODO: fix this mess
+                # basically, I need to replace all whitespaces in the original literal by "\s+"
+                # but I still want to regex escape them
+                # and re.sub doesn't let me insert \s into the new string for some reason......
+                expr.append(
+                    re.sub(r"(\\ )+", " ", re.escape(uop.content)).replace(" ", r"\s+")
+                )
+
         elif isinstance(uop, RE):
             # For regexes, we must make sure that we count the number of capture groups
             # present, so that we know which ones contain the Captures, and which ones
