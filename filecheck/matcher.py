@@ -59,15 +59,19 @@ class Matcher:
             "LABEL": self.match_eventually,
             "CHECK": self.match_eventually,
         }
-
+        checks = 0
         for op in self.operations:
             try:
+                checks += 1
                 function_table.get(op.name, self.fail_op)(op)
             except CheckError as ex:
                 print(f"Error matching: {ex}")
                 op.print_source_repr(self.opts)
                 self.file.print_line_with_current_pos()
                 return 1
+        if checks == 0:
+            print(f"Error: No check strings found with prefix {self.opts.check_prefix}:")
+            return 2
         return 0
 
     def check_dag(self, op: CheckOp):

@@ -18,7 +18,7 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
 - **Flags:**
   - [X] `--check-prefix`
   - [ ] `--check-prefixes`
-  - [X] `--comment-prefixes` (Unimplemented, I think)
+  - [X] `--comment-prefixes`
   - [ ] `--allow-unused-prefixes`
   - [X] `--input-file`
   - [ ] `--match-full-lines`
@@ -42,6 +42,8 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [X] Captures and Capture Matches (partly untested)
   - [X] Numeric Captures (untested)
   - [ ] Numeric Substitutions (jesus christ, wtf man)
+  - [X] Weird regex features (`[:xdigits:]` and friends)
+  - [X] Correct(?) handling of matching check lines
 - **Testing:**
   - [X] Base cases
   - [ ] Negative tests

@@ -1,0 +1,9 @@
+// RUN: ./strip-comments.sh %s | filecheck %s
+
+some test string
+
+// checks are matched no matter where they occur
+// some comment with a CHECK: some test string
+
+// if they shouldn't be matched, add a COM:
+// COM: CHECK line that's not here

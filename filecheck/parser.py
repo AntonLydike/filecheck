@@ -13,7 +13,7 @@ from filecheck.regex import posix_to_python_regex, pattern_from_num_subst_spec
 
 def pattern_for_opts(opts: Options) -> re.Pattern:
     return re.compile(
-        r"(//|;|#) *"
+        "((" + "|".join(map(re.escape, opts.comment_prefixes)) + r"):)?[^\n]*"
         + re.escape(opts.check_prefix)
         + r"(-(DAG|COUNT|NOT|EMPTY|NEXT|SAME|LABEL))?:\s?([^\n]*)\n?"
     )
@@ -78,12 +78,15 @@ class Parser(Iterator[CheckOp]):
             if line == "":
                 raise StopIteration()
 
-            match = self.check_line_regexp.fullmatch(line)
-
+            match = self.check_line_regexp.search(line)
+            # no check line = skip
             if match is None:
                 continue
-            kind = match.group(3)
-            arg = match.group(4)
+            # skip lines containing comment markers, even through they also contain check lines
+            if match.group(1) is not None:
+                continue
+            kind = match.group(4)
+            arg = match.group(5)
             if kind is None:
                 kind = "CHECK"
             if arg is None:
