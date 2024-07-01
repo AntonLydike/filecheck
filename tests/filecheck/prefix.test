@@ -1,0 +1,5 @@
+// RUN: ./strip-comments.sh %s | filecheck %s --check-prefix TEST
+// RUN: ./strip-comments.sh %s | filecheck %s --check-prefix=TEST
+
+hallo welt
+// TEST: hallo welt

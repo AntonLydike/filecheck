@@ -16,7 +16,7 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [ ] `CHECK-DAG` Need to figure this one out exactly
   - [ ] `CHECK-COUNT` (who uses this? Still around ~310 matches in MLIR...)
 - **Flags:**
-  - [X] `--check-prefix` (untested?)
+  - [X] `--check-prefix`
   - [ ] `--check-prefixes`
   - [X] `--comment-prefixes` (Unimplemented, I think)
   - [ ] `--allow-unused-prefixes`

@@ -21,26 +21,37 @@ def parse_argv_options(argv: list[str]) -> Options:
 
     # final options to return
     opts = {}
-    # map args to their position in the argv array
-    args: dict[str, int] = {}
     # args that were consumed
     remove: list[int] = []
-    for i, arg in enumerate(argv):
-        if arg.startswith("--"):
-            args[arg[2:].replace("-", "_")] = i
-        elif arg.startswith("-"):
-            args[arg[1:].replace("-", "_")] = i
 
-    for field in Options.__dataclass_fields__.values():
-        name: str = field.name
-        if name in args:
-            # if boolean field
-            remove.append(args[name])
-            if field.type == bool:
-                opts[name] = True
-            else:
-                remove.append(args[name] + 1)
-                opts[name] = argv[args[name] + 1]
+    for i, arg in enumerate(argv):
+        remainder = None
+        split = False
+        if '=' in arg:
+            split = True
+            arg, remainder = arg.split("=", 1)
+        elif len(argv) > i+1:
+            remainder = argv[i+1]
+
+        if arg.startswith("--"):
+            arg = arg[2:].replace("-", "_")
+        elif arg.startswith("-"):
+            arg = arg[1:].replace("-", "_")
+        else:
+            continue
+        if arg not in Options.__dataclass_fields__:
+            continue
+
+        remove.append(i)
+        if remainder is not None and not split:
+            remove.append(i+1)
+        if Options.__dataclass_fields__[arg].type == bool:
+            opts[arg] = True
+        else:
+            if remainder is None:
+                raise RuntimeError("Out of range arguments")
+            opts[arg] = remainder
+
 
     for idx in sorted(remove, reverse=True):
         argv.pop(idx)
