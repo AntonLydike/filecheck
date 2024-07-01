@@ -8,7 +8,11 @@ A X
 
 B
 // CHECK-NEXT: B
-SOME B
+SOME B C
+// check next should be able to match into the next line
+// CHECK-NEXT: B
+// even though we didn't finish the last line completely, check next should match the next line:
+SOME B C
 // CHECK-NEXT: B
 
 // CHECK-NOT: 404
