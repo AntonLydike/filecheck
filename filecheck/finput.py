@@ -68,7 +68,7 @@ class FInput:
         """
         Find the first occurance of a pattern, might be far away.
         """
-        print(f"searching for {pattern}")
+        print(f"searching for r\"{pattern.pattern}\"")
         return pattern.search(self.content, pos=self.pos)
 
     def find_between(
@@ -111,5 +111,7 @@ class FInput:
         """
         Move to the next \n token (might be at cursor already, then it's a nop)
         """
+        if self.pos == 0:
+            return
         next_newline = self.content.find("\n", self.pos)
         self.move_to(next_newline)

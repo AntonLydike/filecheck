@@ -1,0 +1,7 @@
+// RUN: ./strip-comments.sh %s | filecheck %s
+label_a:
+op_a
+op_b some arg
+// CHECK-NEXT: label_a:
+// CHECK-NEXT: op_a
+// CHECK-NEXT: some arg
