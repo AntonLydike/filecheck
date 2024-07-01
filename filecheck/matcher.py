@@ -105,6 +105,9 @@ class Matcher:
             if self.ctx.negative_matches_stack:
                 self.ctx.negative_matches_start = None
                 self.ctx.negative_matches_stack = []
+        elif self.opts.match_full_lines:
+            if not self.file.is_end_of_line():
+                raise CheckError("Didn't match whole line")
 
     def check_dag(self, op: CheckOp) -> None:
         raise NotImplementedError()

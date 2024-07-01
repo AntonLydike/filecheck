@@ -1,0 +1,19 @@
+// RUN: ./strip-comments.sh %s | filecheck %s --match-full-lines
+
+label_a:
+// CHECK-LABEL: label_a:
+test 1
+// CHECK-NEXT: test 1
+test 2
+// CHECK: test 1 2 3
+test 1 2 3
+
+label_b:
+// CHECK-LABEL: label_b:
+test 100
+// CHECK-NEXT: test [[ARG:\d+]]
+test 1 2 100
+// CHECK-NEXT: test 1 2 [[ARG]]
+test "very_long_arg_string"
+// CHECK-NEXT: test "{{[a-z_]+}}"
+// this file has no newline at the end of it on purpose.

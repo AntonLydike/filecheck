@@ -115,3 +115,15 @@ class FInput:
             return
         next_newline = self.content.find("\n", self.pos)
         self.move_to(next_newline)
+
+    def is_end_of_line(self) -> bool:
+        """
+        Check if line ending or EOF has been reached
+        """
+        # line ending check
+        if self.content.startswith("\n", self.pos):
+            return True
+        # eof check
+        if self.pos == len(self.content) - 1:
+            return True
+        return False

@@ -9,6 +9,7 @@ class Options:
     check_prefix: str = "CHECK"
     strict_whitespace: bool = False
     enable_var_scope: bool = False
+    match_full_lines: bool = False
     comment_prefixes: list[str] = "COM,RUN"  # type: ignore[reportAssignmentType]
 
     def __post_init__(self):

@@ -21,7 +21,7 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [X] `--comment-prefixes`
   - [ ] `--allow-unused-prefixes`
   - [X] `--input-file`
-  - [ ] `--match-full-lines`
+  - [X] `--match-full-lines`
   - [X] `--strict-whitespace` (Kinda? Seems to be working.)
   - [ ] `--ignore-case`
   - [ ] `--implicit-check-not`
