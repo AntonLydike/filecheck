@@ -2,7 +2,7 @@ HELP_TEXT = """filecheck - A Python-native clone of LLVMs FileCheck tool
 usage: filecheck FLAGS check-file
 
 FLAGS:
---input-file <file>                 : Specify an input file, default is stdin (-)            
+--input-file <file>                 : Specify an input file, default is stdin (-)
 --check-prefix <prefix>             : Check line prefix (default is CHECK)
 --strict-whitespace                 : Don't ignore indentation
 --comment-prefixes <a>,<b>,<c>      : Ignore lines starting with these prefixes, even if
