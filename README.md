@@ -52,6 +52,7 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [ ] MLIR/xDSL integration tests
 - **UX:**
   - [ ] Good error messages: I have some error messages, but could be a lot better
+  - [ ] Error messages for malformed regexes
 - **Infrastructure:**
   - [X] Formatting: black
   - [X] Pyright: Almost passes rn

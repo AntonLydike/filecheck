@@ -60,7 +60,7 @@ class Matcher:
             "NOT": self.enqueue_not,
             "EMPTY": self.check_empty,
             "NEXT": self.match_immediately,
-            "SAME": self.match_immediately,
+            "SAME": self.match_eventually,
             "LABEL": self.check_label,
             "CHECK": self.match_eventually,
         }
@@ -204,7 +204,7 @@ class Matcher:
         Uses file.find
         """
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
-        if match := self.file.find(pattern):
+        if match := self.file.find(pattern, op.name == "SAME"):
             print(
                 f"matched: {op.check_line_repr()}, groups={match.groups()} mapping to {repl}"
             )

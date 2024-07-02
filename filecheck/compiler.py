@@ -22,8 +22,6 @@ def compile_uops(
     expr: list[str] = []
     if check.name == "NEXT":
         expr.append(r"\n?[^\n]*")
-    elif check.name == "SAME":
-        expr.append("[^\n]*")
     elif check.name == "EMPTY":
         return CHECK_EMPTY_EXPR, dict()
 

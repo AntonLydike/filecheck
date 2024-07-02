@@ -17,3 +17,9 @@ SOME B C
 
 // CHECK-NOT: 404
 suffix
+
+test A val1 val2 val1 val2 val1
+// CHECK: test A
+// CHECK-SAME: val2
+// CHECK-SAME: val1
+// CHECK-SAME: val2

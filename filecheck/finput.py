@@ -61,15 +61,22 @@ class FInput:
         """
         Match (exactly from the current position)
         """
-        print(f"matching on {pattern}")
+        print(f"matching on r{repr(pattern.pattern)}")
         return pattern.match(self.content, pos=self.pos)
 
-    def find(self, pattern: re.Pattern[str]) -> re.Match[str] | None:
+    def find(
+        self, pattern: re.Pattern[str], this_line: bool = False
+    ) -> re.Match[str] | None:
         """
         Find the first occurance of a pattern, might be far away.
+
+        If this_line is given, match only until the next newline.
         """
-        print(f'searching for r"{pattern.pattern}"')
-        return pattern.search(self.content, pos=self.pos)
+        print(f"searching for r{repr(pattern.pattern)}")
+        endpos = self.content.find("\n", self.pos) if this_line else -1
+        if endpos == -1:
+            endpos = sys.maxsize
+        return pattern.search(self.content, pos=self.pos, endpos=endpos)
 
     def find_between(
         self, pattern: re.Pattern[str], start: int, end: int
@@ -77,7 +84,7 @@ class FInput:
         """
         Find the first occurance of a pattern, might be far away.
         """
-        print(f"searching for {pattern} in input[{start}:{end}]")
+        print(f"searching for r{repr(pattern.pattern)} in input[{start}:{end}]")
         return pattern.search(self.content, pos=start, endpos=end)
 
     def print_line_with_current_pos(self, pos_override: int | None = None):
