@@ -11,13 +11,15 @@ from filecheck.options import Options, parse_argv_options
 from filecheck.regex import posix_to_python_regex, pattern_from_num_subst_spec
 
 
-def pattern_for_opts(opts: Options) -> re.Pattern[str]:
+def pattern_for_opts(opts: Options) -> tuple[re.Pattern[str], re.Pattern[str]]:
     return re.compile(
-        "(("
-        + "|".join(map(re.escape, opts.comment_prefixes))
-        + r"):)?[^\n]*"
-        + re.escape(opts.check_prefix)
+        re.escape(opts.check_prefix)
         + r"(-(DAG|COUNT|NOT|EMPTY|NEXT|SAME|LABEL))?:\s?([^\n]*)\n?"
+    ), re.compile(
+        "("
+        + "|".join(map(re.escape, opts.comment_prefixes))
+        + ").*"
+        + re.escape(opts.check_prefix)
     )
 
 
@@ -54,12 +56,13 @@ class Parser(Iterator[CheckOp]):
     input: TextIO
 
     check_line_regexp: re.Pattern[str]
+    comment_line_regexp: re.Pattern[str]
 
     _line: int = field(default=0)
 
     @classmethod
     def from_opts(cls, opts: Options):
-        return Parser(opts, open(opts.match_filename), pattern_for_opts(opts))
+        return Parser(opts, open(opts.match_filename), *pattern_for_opts(opts))
 
     def __next__(self):
         kind, arg, line = self.next_matching_line()
@@ -79,16 +82,16 @@ class Parser(Iterator[CheckOp]):
             line = self.input.readline()
             if line == "":
                 raise StopIteration()
+            # skip any lines containing comment markers before checks
+            if self.comment_line_regexp.match(line):
+                continue
 
             match = self.check_line_regexp.search(line)
             # no check line = skip
             if match is None:
                 continue
-            # skip lines containing comment markers, even through they also contain check lines
-            if match.group(1) is not None:
-                continue
-            kind = match.group(4)
-            arg = match.group(5)
+            kind = match.group(2)
+            arg = match.group(3)
             if kind is None:
                 kind = "CHECK"
             if arg is None:
@@ -110,7 +113,7 @@ class Parser(Iterator[CheckOp]):
             if part == "[[":
                 # grab parts greedily until we hit a ]]
                 while not part.endswith("]]"):
-                    assert len(parts) > 0, "Malformed substitution pattern"
+                    assert len(parts) > 0, "Invalid substitution block, no ]]"
                     part += parts.pop(0)
                 # check if we are a simple capture pattern [[<name>:<regex>]]
                 if match := VAR_CAPTURE_PATTERN.fullmatch(part):
@@ -136,11 +139,15 @@ class Parser(Iterator[CheckOp]):
                         match.group(2), match.group(3)
                     )
                     uops.append(Capture(match.group(5), pattern, mapper))
+                else:
+                    raise RuntimeError(
+                        f"Invalid substitution block, unknown format: {part}"
+                    )
             elif part == "{{":
-                assert len(parts) > 0, "Malformed regex pattern"
+                assert len(parts) > 0, "Invalid regex block, no }}"
                 next_part = parts.pop(0)
                 while not next_part.endswith("}}"):
-                    assert len(parts) > 0, "Malformed regex pattern"
+                    assert len(parts) > 0, "Malformed regex pattern, no }}"
                     next_part += parts.pop(0)
 
                 pattern = next_part[:-2]
