@@ -2,5 +2,5 @@
 
 // CHECK: [[malformedness
 // DIAG: tests/filecheck/diagnostics/substitution-1.test:3:11 Invalid substitution block, no ]]
-// DIAG-NEXT: // CHECK: [{{}}[malformedness
+// DIAG-NEXT{LITERAL}: // CHECK: [[malformedness
 // DIAG-NEXT: {{          }}^

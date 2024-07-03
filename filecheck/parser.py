@@ -59,7 +59,8 @@ class Parser(Iterator[CheckOp]):
     check_line_regexp: re.Pattern[str]
     comment_line_regexp: re.Pattern[str]
 
-    _line: int = field(default=0)
+    line_no: int = field(default=0)
+    line: str = field(default=0)
 
     @classmethod
     def from_opts(cls, opts: Options):
@@ -75,7 +76,7 @@ class Parser(Iterator[CheckOp]):
         returns CHECK.
         """
         while True:
-            self._line += 1
+            self.line_no += 1
             line = self.input.readline()
             if line == "":
                 raise StopIteration()
@@ -98,7 +99,7 @@ class Parser(Iterator[CheckOp]):
                 if not arg:
                     raise ParseError(
                         f"found empty check string with prefix '{kind}:'",
-                        self._line,
+                        self.line_no,
                         match.start(3),
                         line,
                     )
@@ -118,19 +119,21 @@ class Parser(Iterator[CheckOp]):
                 if count == 0:
                     raise ParseError(
                         f"invalid count in -COUNT specification on prefix '{opts.check_prefix}' (count can't be 0)",
-                        self._line,
+                        self.line_no,
                         match.end(2),
                         line,
                     )
                 return CountOp(
                     "COUNT",
                     arg,
-                    self._line,
+                    self.line_no,
                     uops,
                     is_literal=literal is not None,
                     count=count,
                 )
-            return CheckOp(kind, arg, self._line, uops, is_literal=literal is not None)
+            return CheckOp(
+                kind, arg, self.line_no, uops, is_literal=literal is not None
+            )
 
     def parse_args(self, arg: str, line: str) -> list[UOp]:
         """
@@ -149,7 +152,7 @@ class Parser(Iterator[CheckOp]):
                     if not parts:
                         raise ParseError(
                             "Invalid substitution block, no ]]",
-                            self._line,
+                            self.line_no,
                             offset,
                             line,
                         )
@@ -181,7 +184,7 @@ class Parser(Iterator[CheckOp]):
                 else:
                     raise ParseError(
                         f"Invalid substitution block, unknown format: {part}",
-                        self._line,
+                        self.line_no,
                         offset,
                         line,
                     )
@@ -189,7 +192,7 @@ class Parser(Iterator[CheckOp]):
                 while not part.endswith("}}"):
                     if not parts:
                         raise ParseError(
-                            "Invalid regex block, no }}", self._line, offset, line
+                            "Invalid regex block, no }}", self.line_no, offset, line
                         )
                     part += parts.pop(0)
 

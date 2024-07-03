@@ -35,7 +35,7 @@ class Matcher:
 
     opts: Options
     file: FInput
-    operations: Iterator[CheckOp]
+    operations: Parser
 
     ctx: Context = field(default_factory=Context)
 
@@ -72,10 +72,14 @@ class Matcher:
                 self._pre_check(op)
                 function_table.get(op.name, self.fail_op)(op)
                 self._post_check(op)
+
+            # run the post-check one last time to make sure all NOT checks are taken care of.
+            self.file.pos = len(self.file.content) - 1
+            self._post_check(CheckOp("NOP", "", -1, []))
         except CheckError as ex:
-            print(ex.message)
-            if op is not None:
-                op.print_source_repr(self.opts)
+            print(
+                f"{self.opts.match_filename}:{self.operations.line_no}: error: {ex.message}"
+            )
             self.file.print_line_with_current_pos()
 
             if ex.pattern:
@@ -91,8 +95,6 @@ class Matcher:
             print(" " * (ex.offset - 1) + "^")
             return 1
 
-        # run the post-check one last time to make sure all NOT checks are taken care of.
-        self._post_check(CheckOp("NOP", "", -1, []))
         if checks == 0:
             print(
                 f"Error: No check strings found with prefix {self.opts.check_prefix}:"
@@ -133,10 +135,10 @@ class Matcher:
         pattern, _ = compile_uops(op, self.ctx.live_variables, self.opts)
         if start is None:
             start = 0
-        start = min(start, self.file.start_of_line())
-        end = max(start, self.file.start_of_line())
-        if self.file.find_between(pattern, start, end):
-            raise CheckError(f"Matched {op.check_line_repr()}")
+        if self.file.find_between(pattern, start, self.file.pos):
+            raise CheckError(
+                f"{self.opts.check_prefix}-NOT: excluded string found in input ('{op.arg}')"
+            )
 
     def enqueue_not(self, op: CheckOp):
         """

@@ -1,0 +1,8 @@
+// RUN: strip-comments.sh %s | exfail filecheck %s --comment-prefixes=DIAG,RUN | filecheck %s --check-prefix DIAG
+
+test2
+test3
+// CHECK: test2
+// CHECK-NOT: test3
+
+// DIAG: check-not-3.test:9: error: CHECK-NOT: excluded string found in input ('test3')
