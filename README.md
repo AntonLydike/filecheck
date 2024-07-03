@@ -14,7 +14,7 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [X] `CHECK-EMPTY`
   - [X] `CHECK-SAME`
   - [ ] `CHECK-DAG` Need to figure this one out exactly
-  - [ ] `CHECK-COUNT` (who uses this? Still around ~310 matches in MLIR...)
+  - [X] `CHECK-COUNT` (who uses this? Still around ~310 matches in MLIR...)
 - **Flags:**
   - [X] `--check-prefix`
   - [ ] `--check-prefixes`
@@ -42,7 +42,7 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [X] Captures and Capture Matches
   - [X] Numeric Captures
   - [ ] Numeric Substitutions (jesus christ, wtf man)
-  - [ ] Literal matching (`CHECK{LITERAL}`)
+  - [X] Literal matching (`CHECK{LITERAL}`)
   - [X] Weird regex features (`[:xdigits:]` and friends)
   - [X] Correct(?) handling of matching check lines
 - **Testing:**

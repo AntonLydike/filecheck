@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Iterator, Callable
 
 from filecheck.finput import FInput
-from filecheck.ops import CheckOp
+from filecheck.ops import CheckOp, CountOp
 from filecheck.options import Options
 from filecheck.parser import Parser
 from filecheck.compiler import compile_uops
@@ -121,7 +121,10 @@ class Matcher:
         raise NotImplementedError()
 
     def check_count(self, op: CheckOp) -> None:
-        raise NotImplementedError()
+        # invariant preserved by parser
+        assert isinstance(op, CountOp)
+        for _ in range(op.count):
+            self.match_eventually(op)
 
     def check_not(self, op: CheckOp, start: int | None):
         """

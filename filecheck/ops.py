@@ -1,5 +1,5 @@
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 from filecheck.options import Options
@@ -7,7 +7,7 @@ from filecheck.options import Options
 OP_KINDS = ("DAG", "COUNT", "NOT", "EMPTY", "NEXT", "SAME", "LABEL", "CHECK")
 
 
-@dataclass
+@dataclass(slots=True)
 class CheckOp:
     """
     Represents a concrete check instruction (e.g. CHECK-NEXT)
@@ -17,6 +17,7 @@ class CheckOp:
     arg: str
     source_line: int
     uops: list[UOp]
+    is_literal: bool = field(default=False, kw_only=True)
 
     def check_line_repr(self, prefix: str = "CHECK"):
         return f"{prefix}{self._suffix()}: {self.arg}"
@@ -26,12 +27,26 @@ class CheckOp:
         print(self.check_line_repr(opts.check_prefix))
 
     def _suffix(self):
+        suffix = "{LITERAL}" if self.is_literal else ""
         if self.name == "CHECK":
-            return ""
-        return "-" + self.name
+            return suffix
+        return "-" + self.name + suffix
 
 
-@dataclass(frozen=True)
+@dataclass(slots=True)
+class CountOp(CheckOp):
+    """
+    special case for COUNT-<number>
+    """
+
+    count: int = field(kw_only=True)
+
+    def _suffix(self):
+        suffix = "{LITERAL}" if self.is_literal else ""
+        return f"-COUNT{self.count}" + suffix
+
+
+@dataclass(frozen=True, slots=True)
 class UOp:
     """
     micro-ops, thse make up the filecheck matching logic
@@ -40,7 +55,7 @@ class UOp:
     pass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Literal(UOp):
     """
     literal match
@@ -49,7 +64,7 @@ class Literal(UOp):
     content: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class RE(UOp):
     """
     Regular expression matching
@@ -58,7 +73,7 @@ class RE(UOp):
     content: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Capture(UOp):
     """
     Variable capture expression
@@ -76,7 +91,7 @@ class Capture(UOp):
     value_mapper: Callable[[str], int] | Callable[[str], str]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Subst(UOp):
     """
     Variable substitution, e.g. expect the contents of a variable here.
@@ -92,7 +107,7 @@ class Subst(UOp):
     variable: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class NumSubst(UOp):
     """
     Numeric substitution (substitute variable with derived expression).

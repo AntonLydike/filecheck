@@ -7,7 +7,7 @@ from typing import Iterator, TextIO
 import re
 
 from filecheck.error import ParseError
-from filecheck.ops import CheckOp, Literal, RE, Capture, Subst, NumSubst, UOp
+from filecheck.ops import CheckOp, Literal, RE, Capture, Subst, NumSubst, UOp, CountOp
 from filecheck.options import Options, parse_argv_options
 from filecheck.regex import posix_to_python_regex, pattern_from_num_subst_spec
 
@@ -15,7 +15,7 @@ from filecheck.regex import posix_to_python_regex, pattern_from_num_subst_spec
 def pattern_for_opts(opts: Options) -> tuple[re.Pattern[str], re.Pattern[str]]:
     return re.compile(
         re.escape(opts.check_prefix)
-        + r"(-(DAG|COUNT|NOT|EMPTY|NEXT|SAME|LABEL))?:\s?([^\n]*)\n?"
+        + r"(-(DAG|COUNT-\d+|NOT|EMPTY|NEXT|SAME|LABEL))?(\{LITERAL})?:\s?([^\n]*)\n?"
     ), re.compile(
         "("
         + "|".join(map(re.escape, opts.comment_prefixes))
@@ -65,11 +65,7 @@ class Parser(Iterator[CheckOp]):
     def from_opts(cls, opts: Options):
         return Parser(opts, open(opts.match_filename), *pattern_for_opts(opts))
 
-    def __next__(self):
-        kind, arg, line = self.next_matching_line()
-        return CheckOp(kind, arg, self._line, self.parse_args(arg, line))
-
-    def next_matching_line(self) -> tuple[str, str, str]:
+    def __next__(self) -> CheckOp:
         """
         Scans forward in self.input until a line matching  self.check_line_regexp is
         found. Returns the kind (CHECK/NEXT/DAG/EMPTY/NOT) and the arg (whatever comes
@@ -91,7 +87,8 @@ class Parser(Iterator[CheckOp]):
             if match is None:
                 continue
             kind = match.group(2)
-            arg = match.group(3)
+            literal = match.group(3)
+            arg = match.group(4)
             if kind is None:
                 kind = "CHECK"
             if arg is None:
@@ -107,7 +104,33 @@ class Parser(Iterator[CheckOp]):
                     )
             if not self.opts.strict_whitespace:
                 arg = arg.strip()
-            return kind, arg, line
+
+            # parse the uops, but only if we are not in LITERAL mode
+            uops: list[UOp]
+            if literal is None:
+                uops = self.parse_args(arg, line)
+            else:
+                uops = [Literal(arg)]
+
+            # special case for COUNT ops
+            if kind.startswith("COUNT"):
+                count = int(kind[6:])
+                if count == 0:
+                    raise ParseError(
+                        f"invalid count in -COUNT specification on prefix '{opts.check_prefix}' (count can't be 0)",
+                        self._line,
+                        match.end(2),
+                        line,
+                    )
+                return CountOp(
+                    "COUNT",
+                    arg,
+                    self._line,
+                    uops,
+                    is_literal=literal is not None,
+                    count=count,
+                )
+            return CheckOp(kind, arg, self._line, uops, is_literal=literal is not None)
 
     def parse_args(self, arg: str, line: str) -> list[UOp]:
         """

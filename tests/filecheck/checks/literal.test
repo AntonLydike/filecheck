@@ -1,0 +1,16 @@
+// RUN: strip-comments.sh %s | filecheck %s
+
+test [[a
+// CHECK{LITERAL}: test [[a
+test [[b
+// CHECK-NEXT{LITERAL}: test [[b
+test {{c
+test {{c
+// CHECK-COUNT-2{LITERAL}: test {{c
+test d {{d
+// CHECK: test d
+// CHECK-SAME{LITERAL}: {{d
+label_{{a
+// CHECK-LABEL{LITERAL}: label_{{a
+something {{here
+// CHECK-NOT{LITERAL}: {{here}}
