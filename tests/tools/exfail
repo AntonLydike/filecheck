@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+if "$@" 2>&1 ; then
+  echo "Error: expected command to fail!"
+  exit 1
+fi

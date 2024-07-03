@@ -1,4 +1,4 @@
-// RUN: ./strip-comments.sh %s | filecheck %s
+// RUN: strip-comments.sh %s | filecheck %s
 
 sample text with a number: 144
 // CHECK: sample text with a number: {{\d+}}

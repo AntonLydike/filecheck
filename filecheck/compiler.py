@@ -1,5 +1,6 @@
 import re
 
+from filecheck.error import ParseError
 from filecheck.ops import Literal, RE, Capture, NumSubst, Subst, CheckOp
 from filecheck.options import Options
 
@@ -67,8 +68,11 @@ def compile_uops(
             else:
                 # otherwise match immediate
                 if uop.variable not in variables:
-                    raise RuntimeError(
-                        f"Variable {uop.variable} referenced before assignment"
+                    raise ParseError(
+                        f"Variable {uop.variable} referenced before assignment",
+                        check.source_line,
+                        0,
+                        check.check_line_repr(),
                     )
                 expr.append(re.escape(str(variables[uop.variable])))
         elif isinstance(uop, NumSubst):

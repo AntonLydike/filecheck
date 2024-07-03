@@ -1,4 +1,4 @@
-// RUN: ./strip-comments.sh %s | filecheck %s
+// RUN: strip-comments.sh %s | filecheck %s
 label_a:
 op_a
 op_b some arg

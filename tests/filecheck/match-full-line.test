@@ -1,4 +1,4 @@
-// RUN: ./strip-comments.sh %s | filecheck %s --match-full-lines
+// RUN: strip-comments.sh %s | filecheck %s --match-full-lines
 
 label_a:
 // CHECK-LABEL: label_a:

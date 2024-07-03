@@ -1,5 +1,5 @@
-// RUN: ./strip-comments.sh %s | filecheck %s
-// RUN: ./strip-comments.sh %s | filecheck %s --strict-whitespace --check-prefix=STRICT
+// RUN: strip-comments.sh %s | filecheck %s
+// RUN: strip-comments.sh %s | filecheck %s --strict-whitespace --check-prefix=STRICT
 
 hello world
 // CHECK: hello  world

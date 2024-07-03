@@ -1,4 +1,4 @@
-// RUN: ./strip-comments.sh %s | filecheck %s --enable-var-scope
+// RUN: strip-comments.sh %s | filecheck %s --enable-var-scope
 
 region_a:
     op 1

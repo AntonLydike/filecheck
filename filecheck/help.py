@@ -14,7 +14,7 @@ FLAGS:
 
 
 ARGUMENTS:
-check-file                          : The file from which the check lines are to be read
+check-file                      : The file from which the check lines are to be read
 
 This tries to be as close a clone of LLVMs FileCheck as possible. We use it in xDSL
 for our tests. If a feature is missing, or behaviour deviates from LLVMs FileCheck,

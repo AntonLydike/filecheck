@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from typing import Iterator, TextIO
 import re
 
+from filecheck.error import ParseError
 from filecheck.ops import CheckOp, Literal, RE, Capture, Subst, NumSubst, UOp
 from filecheck.options import Options, parse_argv_options
 from filecheck.regex import posix_to_python_regex, pattern_from_num_subst_spec
@@ -66,9 +67,9 @@ class Parser(Iterator[CheckOp]):
 
     def __next__(self):
         kind, arg, line = self.next_matching_line()
-        return CheckOp(kind, arg, line, self.parse_args(arg))
+        return CheckOp(kind, arg, self._line, self.parse_args(arg, line))
 
-    def next_matching_line(self) -> tuple[str, str, int]:
+    def next_matching_line(self) -> tuple[str, str, str]:
         """
         Scans forward in self.input until a line matching  self.check_line_regexp is
         found. Returns the kind (CHECK/NEXT/DAG/EMPTY/NOT) and the arg (whatever comes
@@ -83,9 +84,8 @@ class Parser(Iterator[CheckOp]):
             if line == "":
                 raise StopIteration()
             # skip any lines containing comment markers before checks
-            if self.comment_line_regexp.match(line):
+            if self.comment_line_regexp.search(line) is not None:
                 continue
-
             match = self.check_line_regexp.search(line)
             # no check line = skip
             if match is None:
@@ -96,11 +96,20 @@ class Parser(Iterator[CheckOp]):
                 kind = "CHECK"
             if arg is None:
                 arg = ""
+            # verify that non-empty checks have an actual thing to match
+            if kind != "EMPTY":
+                if not arg:
+                    raise ParseError(
+                        f"found empty check string with prefix '{kind}:'",
+                        self._line,
+                        match.start(3),
+                        line,
+                    )
             if not self.opts.strict_whitespace:
                 arg = arg.strip()
-            return kind, arg, self._line
+            return kind, arg, line
 
-    def parse_args(self, arg: str) -> list[UOp]:
+    def parse_args(self, arg: str, line: str) -> list[UOp]:
         """
         parse check args into uops that can later be compiled into a regex
 
@@ -108,12 +117,19 @@ class Parser(Iterator[CheckOp]):
         """
         uops: list[UOp] = []
         parts = LINE_SPLIT_RE.split(arg)
+        offset = len(line) - len(arg)
         while parts:
             part = parts.pop(0)
             if part == "[[":
                 # grab parts greedily until we hit a ]]
                 while not part.endswith("]]"):
-                    assert len(parts) > 0, "Invalid substitution block, no ]]"
+                    if not parts:
+                        raise ParseError(
+                            "Invalid substitution block, no ]]",
+                            self._line,
+                            offset,
+                            line,
+                        )
                     part += parts.pop(0)
                 # check if we are a simple capture pattern [[<name>:<regex>]]
                 if match := VAR_CAPTURE_PATTERN.fullmatch(part):
@@ -140,20 +156,25 @@ class Parser(Iterator[CheckOp]):
                     )
                     uops.append(Capture(match.group(5), pattern, mapper))
                 else:
-                    raise RuntimeError(
-                        f"Invalid substitution block, unknown format: {part}"
+                    raise ParseError(
+                        f"Invalid substitution block, unknown format: {part}",
+                        self._line,
+                        offset,
+                        line,
                     )
             elif part == "{{":
-                assert len(parts) > 0, "Invalid regex block, no }}"
-                next_part = parts.pop(0)
-                while not next_part.endswith("}}"):
-                    assert len(parts) > 0, "Malformed regex pattern, no }}"
-                    next_part += parts.pop(0)
+                while not part.endswith("}}"):
+                    if not parts:
+                        raise ParseError(
+                            "Invalid regex block, no }}", self._line, offset, line
+                        )
+                    part += parts.pop(0)
 
-                pattern = next_part[:-2]
+                pattern = part[2:-2]
                 uops.append(RE(posix_to_python_regex(pattern)))
             elif part != "":
                 uops.append(Literal(part))
+            offset += len(part)
         return uops
 
 

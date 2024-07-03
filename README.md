@@ -42,17 +42,20 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [X] Captures and Capture Matches
   - [X] Numeric Captures
   - [ ] Numeric Substitutions (jesus christ, wtf man)
+  - [ ] Literal matching (`CHECK{LITERAL}`)
   - [X] Weird regex features (`[:xdigits:]` and friends)
   - [X] Correct(?) handling of matching check lines
 - **Testing:**
   - [X] Base cases
   - [ ] Negative tests
-  - [ ] Error messages
+  - [ ] Error messages (started)
   - [ ] Lots of edge cases
   - [ ] MLIR/xDSL integration tests
 - **UX:**
-  - [ ] Good error messages: I have some error messages, but could be a lot better
-  - [ ] Error messages for malformed regexes
+  - Good error messages: I have some error messages, but could be a lot better
+    - [X] Parse errors
+    - [ ] Matching errors
+    - [ ] Malformed regexes
 - **Infrastructure:**
   - [X] Formatting: black
   - [X] Pyright: Almost passes rn

@@ -1,4 +1,4 @@
-// RUN: ./strip-comments.sh %s | filecheck %s
+// RUN: strip-comments.sh %s | filecheck %s
 
 part_a:
 // CHECK: part_a:

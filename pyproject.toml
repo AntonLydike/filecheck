@@ -11,9 +11,9 @@ python = "^3.10"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
-pyright = "^1.1.369"
 lit = "^18.1.8"
 pre-commit = "^3.7.1"
+pyright = "^1.1.370"
 
 [tool.poetry.scripts]
 filecheck = "filecheck.main:main"

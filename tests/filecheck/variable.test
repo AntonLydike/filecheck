@@ -1,4 +1,4 @@
-// RUN: ./strip-comments.sh %s | filecheck %s
+// RUN: strip-comments.sh %s | filecheck %s
 
 assign x
 // CHECK: assign [[VAR:[a-z]+]]

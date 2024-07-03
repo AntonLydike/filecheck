@@ -6,7 +6,7 @@ from filecheck.ops import CheckOp
 from filecheck.options import Options
 from filecheck.parser import Parser
 from filecheck.compiler import compile_uops
-from filecheck.error import CheckError
+from filecheck.error import CheckError, ParseError
 
 
 @dataclass
@@ -65,23 +65,31 @@ class Matcher:
             "CHECK": self.match_eventually,
         }
         checks = 0
-        for op in self.operations:
-            try:
+        op: CheckOp | None = None
+        try:
+            for op in self.operations:
                 checks += 1
                 self._pre_check(op)
                 function_table.get(op.name, self.fail_op)(op)
                 self._post_check(op)
-            except CheckError as ex:
-                print(f"Error matching: {ex.message}")
+        except CheckError as ex:
+            print(ex.message)
+            if op is not None:
                 op.print_source_repr(self.opts)
-                self.file.print_line_with_current_pos()
+            self.file.print_line_with_current_pos()
 
-                if ex.pattern:
-                    if match := self.file.find(ex.pattern):
-                        print("Possible match at:")
-                        self.file.print_line_with_current_pos(match.start(0))
+            if ex.pattern:
+                print(f"Trying to match with regex '{ex.pattern.pattern}'")
+                if match := self.file.find(ex.pattern):
+                    print("Possible match at:")
+                    self.file.print_line_with_current_pos(match.start(0))
 
-                return 1
+            return 1
+        except ParseError as ex:
+            print(f"{self.opts.match_filename}:{ex.line_no}:{ex.offset} {ex.message}")
+            print(ex.offending_line.rstrip("\n"))
+            print(" " * (ex.offset - 1) + "^")
+            return 1
 
         # run the post-check one last time to make sure all NOT checks are taken care of.
         self._post_check(CheckOp("NOP", "", -1, []))
@@ -183,16 +191,8 @@ class Matcher:
         """
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         if match := self.file.match(pattern):
-            print(
-                f"matched: {op.check_line_repr()}, groups={match.groups()} mapping to {repl}"
-            )
-
             self.file.move_to(match.end(0))
-
             for var, group in repl.items():
-                print(
-                    f"assigning variable {var.name} from group {group} value {match.group(group)} "
-                )
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
         else:
             raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
@@ -205,16 +205,8 @@ class Matcher:
         """
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         if match := self.file.find(pattern, op.name == "SAME"):
-            print(
-                f"matched: {op.check_line_repr()}, groups={match.groups()} mapping to {repl}"
-            )
-
             self.file.move_to(match.end())
-
             for var, group in repl.items():
-                print(
-                    f"assigning variable {var.name} from group {group} value {match.group(group)} "
-                )
                 self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
 
         else:

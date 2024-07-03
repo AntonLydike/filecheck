@@ -182,3 +182,8 @@ pyrightconfig.json
 # lit test times
 .lit_test_times.txt
 Output/
+
+
+# profiling
+*.profile
+*.pstat

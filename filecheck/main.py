@@ -14,6 +14,5 @@ def main(argv: list[str] | None = None):
         return
 
     opts = parse_argv_options(argv)
-    print(opts)
     m = Matcher.from_opts(opts)
     sys.exit(m.run())

@@ -1,4 +1,4 @@
-// RUN: ./strip-comments.sh %s | filecheck %s
+// RUN: strip-comments.sh %s | filecheck %s
 
 some test string
 
@@ -6,4 +6,5 @@ some test string
 // some comment with a CHECK: some test string
 
 // if they shouldn't be matched, add a COM:
-// COM: CHECK line that's not here
+// COM this will be ignored CHECK: line that's not here
+// COM CHECK: this line will also not be matched
