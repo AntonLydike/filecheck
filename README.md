@@ -13,12 +13,12 @@ Here's an overview of all FileCheck features and their implementation status.
 - **Checks:**
   - [X] `CHECK`
   - [X] `CHECK-NEXT`
-  - [X] `CHECK-NOT` (not sure, I think I may have missed something. Docs aren't great on this one.)
+  - [X] `CHECK-NOT`
   - [X] `CHECK-LABEL`
   - [X] `CHECK-EMPTY`
   - [X] `CHECK-SAME`
   - [ ] `CHECK-DAG` Need to figure this one out exactly
-  - [X] `CHECK-COUNT` (who uses this? Still around ~310 matches in MLIR...)
+  - [X] `CHECK-COUNT`
 - **Flags:**
   - [X] `--check-prefix`
   - [ ] `--check-prefixes`
