@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Iterator, Callable
+from typing import Callable
 
 from filecheck.finput import FInput
 from filecheck.ops import CheckOp, CountOp

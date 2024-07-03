@@ -60,7 +60,7 @@ class Parser(Iterator[CheckOp]):
     comment_line_regexp: re.Pattern[str]
 
     line_no: int = field(default=0)
-    line: str = field(default=0)
+    line: str = field(default="")
 
     @classmethod
     def from_opts(cls, opts: Options):

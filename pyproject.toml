@@ -1,10 +1,17 @@
 [tool.poetry]
-name = "filecheck"
+name = "filecheck-ng"
 version = "0.1.0"
 description = "A Python-native clone of LLVMs FileCheck tool"
 authors = ["Anton Lydike <me@antonlydike.de>"]
-license = "GPLv3"
+license = "GPL-3.0-or-later"
 readme = "README.md"
+homepage = "https://github.com/AntonLydike/filecheck"
+repository = "https://github.com/AntonLydike/filecheck"
+keywords = ["tests", "filecheck", "llvm"]
+packages = [
+    { include = "filecheck" },
+    { include = "filecheck/py.typed" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
