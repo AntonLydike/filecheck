@@ -4,7 +4,11 @@ This tries to be as close a clone of LLVMs FileCheck as possible, without going 
 
 There are some features that are left out for now (e.g. [pseudo-numeric variables](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables) and parts of [numeric substitution](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)).
 
+The codebase is fully type checked by `pyright`, and automatically formatted using `black`. We aim to have tests
+covering everything from normal matching down to error messages.
+
 ## Features:
+Here's an overview of all FileCheck features and their implementation status.
 
 - **Checks:**
   - [X] `CHECK`
@@ -62,4 +66,37 @@ There are some features that are left out for now (e.g. [pseudo-numeric variable
   - [X] `pre-commit`: Didn't get to it yet
   - [X] CI for formatting
 
-Open to PRs for any such features.
+We are open to PRs for bugfixes or any features listed here.
+
+## Differences to LLVMs FileCheck:
+We want to be as close as possible to the original FileCheck, and document our differences very clearly.
+
+If you encounter a difference that is not documented here, feel free to file a bug report.
+
+### Better Regexes
+We use pythons regex library, which is a flavour of a Perl compatible regular expression (PCRE), instead of FileChecks
+POSIX regex falvour.
+
+**Example:**
+```
+// LLVM filecheck:
+// CHECK: %{{[:alnum:]+}}, %{{[:digit:]+}}
+
+// our fileheck:
+// CHECK: %{{[a-zA-Z0-9]+}}, %{{\d+}}
+```
+
+Some effort is made to translate character classes from POSIX to PCRE, although it might be wrong in edge cases.
+
+### Relaxed Matchings:
+
+We relax some of the matching rules, like:
+
+- Allow a file to start with `CHECK-NEXT`
+
+
+### No Numerical Substitution
+
+While our filecheck supports [numeric capture](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)
+(`[[#%.3x,VAR:]]` will capture a three-digit hex number), we don't support arithmetic expressions on these captured
+values at the moment. We also don't support the "Pseudo Numeric Variable" `@LINE`.

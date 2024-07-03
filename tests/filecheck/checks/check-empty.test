@@ -1,0 +1,14 @@
+// RUN: strip-comments.sh %s | filecheck %s
+
+test 1
+
+test 2
+
+test 3
+
+// CHECK: test 1
+// CHECK-EMPTY:
+// CHECK: test 2
+// the next line contains two spaces
+// CHECK-EMPTY:
+// CHECK: test 3
