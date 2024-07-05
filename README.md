@@ -14,10 +14,10 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `CHECK`
   - [X] `CHECK-NEXT`
   - [X] `CHECK-NOT`
-  - [X] `CHECK-LABEL`
+  - [X] `CHECK-LABEL` [#1](https://github.com/AntonLydike/filecheck/issues/1)
   - [X] `CHECK-EMPTY`
   - [X] `CHECK-SAME`
-  - [ ] `CHECK-DAG` Need to figure this one out exactly
+  - [ ] `CHECK-DAG` [#2](https://github.com/AntonLydike/filecheck/issues/2)
   - [X] `CHECK-COUNT`
 - **Flags:**
   - [X] `--check-prefix`
