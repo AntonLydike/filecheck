@@ -1,0 +1,7 @@
+// RUN: strip-comments.sh %s | filecheck %s -DARG=x
+// RUN: strip-comments.sh %s | filecheck %s -DARG=y
+// RUN: strip-comments.sh %s | filecheck %s "-DARG=test x"
+
+test x
+test y
+// CHECK: [[ARG]]

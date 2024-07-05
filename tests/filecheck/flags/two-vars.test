@@ -1,0 +1,8 @@
+// RUN strip-comments.sh %s | filecheck %s -DVAR1=hello -DVAR2="test 123"
+
+test hello
+test 123
+test hello
+// CHECK: [[VAR1]]
+// CHECK: [[VAR2]]
+// CHECK: [[VAR1]]

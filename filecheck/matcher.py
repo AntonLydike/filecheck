@@ -48,6 +48,9 @@ class Matcher:
         fin = FInput.from_opts(opts)
         return Matcher(opts, fin, ops)
 
+    def __post_init__(self):
+        self.ctx.live_variables.update(self.opts.variables)
+
     def run(self) -> int:
         """
         Run the matching, returns the exit code of the program.

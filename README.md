@@ -33,7 +33,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [ ] `--dump-input-context`
   - [ ] `--dump-input-filter`
   - [X] `--enable-var-scope`
-  - [ ] `-D<VAR=VALUE>`
+  - [X] `-D<VAR=VALUE>`
   - [ ] `-D#<FMT>,<NUMVAR>=<NUMERIC EXPRESSION>`
   - [ ] `-version`
   - [ ] `-v`
