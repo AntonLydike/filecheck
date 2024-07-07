@@ -7,8 +7,21 @@ from __future__ import annotations
 import re
 import sys
 from dataclasses import dataclass, field
+from typing import Iterable
 
 from filecheck.options import Options
+
+
+@dataclass(slots=True)
+class InputRange:
+    start: int
+    end: int
+
+    def ranges(self) -> Iterable[tuple[int, int]]:
+        yield (self.start, self.end)
+
+    def restrict_end(self, new_end: int):
+        return InputRange(self.start, new_end)
 
 
 @dataclass
@@ -21,9 +34,11 @@ class FInput:
 
     fname: str
     content: str
-    pos: int = field(default=0)
 
     line_no: int = field(default=0)
+
+    range: InputRange = field(default_factory=lambda: InputRange(0, sys.maxsize))
+    ranges: list[InputRange] = field(default_factory=list)
 
     @staticmethod
     def from_opts(opts: Options) -> FInput:
@@ -42,51 +57,64 @@ class FInput:
         Move forward by dist characters in the input
         """
         assert dist >= 0
-        self.line_no += self.content.count("\n", self.pos, self.pos + dist)
-        self.pos += dist
+        self.line_no += self.content.count(
+            "\n", self.range.start, self.range.start + dist
+        )
+        self.range.start += dist
+
+        while self.range.start > self.range.end != -1:
+            next_range = self.ranges.pop(0)
+            next_range.start = min(self.range.start, next_range.start)
 
     def move_to(self, new_pos: int):
         """
-        Move forwards or backwards to a specific point
+        Move forwards to a specific point
         """
-        sign = 1 if new_pos > self.pos else -1
-        lines = self.content.count("\n", min(new_pos, self.pos), max(new_pos, self.pos))
-        self.line_no += sign * lines
-        self.pos = new_pos
+        self.advance_by(new_pos - self.range.start)
 
     def match(self, pattern: re.Pattern[str]) -> re.Match[str] | None:
         """
         Match (exactly from the current position)
         """
-        return pattern.match(self.content, pos=self.pos)
+        for start, end in self.range.ranges():
+            return pattern.match(self.content, pos=start, endpos=end)
 
     def find(
-        self, pattern: re.Pattern[str], this_line: bool = False
+        self,
+        pattern: re.Pattern[str],
+        this_line: bool = False,
     ) -> re.Match[str] | None:
         """
         Find the first occurance of a pattern, might be far away.
 
         If this_line is given, match only until the next newline.
         """
-        endpos = self.content.find("\n", self.pos) if this_line else -1
-        if endpos == -1:
-            endpos = sys.maxsize
-        return pattern.search(self.content, pos=self.pos, endpos=endpos)
+        range = self.range
+
+        newline = (
+            self.content.find("\n", range.start, range.end) if this_line else range.end
+        )
+        if newline != -1:
+            range = range.restrict_end(newline)
+
+        for start, end in range.ranges():
+            return pattern.search(self.content, pos=start, endpos=end)
 
     def find_between(
-        self, pattern: re.Pattern[str], start: int, end: int
+        self, pattern: re.Pattern[str], range: InputRange
     ) -> re.Match[str] | None:
         """
         Find the first occurance of a pattern, might be far away.
         """
-        return pattern.search(self.content, pos=start, endpos=end)
+        for start, end in range.ranges():
+            return pattern.search(self.content, pos=start, endpos=end)
 
     def print_line_with_current_pos(self, pos_override: int | None = None):
         """
         Print the current position in the input file.
         """
         fname = self.fname if self.fname != "-" else "stdin"
-        pos = self.pos if pos_override is None else pos_override
+        pos = self.range.start if pos_override is None else pos_override
         next_newline_at = self.content.find("\n", pos)
 
         # print the next line if we are pointing at a line end.
@@ -105,16 +133,16 @@ class FInput:
         Find the start of the line at position pos (defaults to current position)
         """
         if pos is None:
-            pos = self.pos
+            pos = self.range.start
         return max(self.content.rfind("\n", 0, pos), 0)
 
     def skip_to_end_of_line(self):
         """
         Move to the next \n token (might be at cursor already, then it's a nop)
         """
-        if self.pos == 0:
+        if self.range.start == 0:
             return
-        next_newline = self.content.find("\n", self.pos)
+        next_newline = self.content.find("\n", self.range.start)
         self.move_to(next_newline)
 
     def is_end_of_line(self) -> bool:
@@ -122,9 +150,16 @@ class FInput:
         Check if line ending or EOF has been reached
         """
         # line ending check
-        if self.content.startswith("\n", self.pos):
+        if self.content.startswith("\n", self.range.start):
             return True
         # eof check
-        if self.pos == len(self.content) - 1:
+        if self.range.start == len(self.content) - 1:
             return True
         return False
+
+    def starts_with(self, expr: str) -> bool:
+        return self.content.startswith(expr, self.range.start)
+
+    def print_range(self, frange: InputRange):
+        print(f"{self.fname}: ({frange.start} to {frange.end})")
+        print(self.content[frange.start : frange.end])

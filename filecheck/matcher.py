@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Callable
 
-from filecheck.finput import FInput
+from filecheck.finput import FInput, InputRange
 from filecheck.ops import CheckOp, CountOp
 from filecheck.options import Options
 from filecheck.parser import Parser
@@ -78,7 +78,7 @@ class Matcher:
                 self._post_check(op)
 
             # run the post-check one last time to make sure all NOT checks are taken care of.
-            self.file.pos = len(self.file.content) - 1
+            self.file.range.start = len(self.file.content) - 1
             self._post_check(CheckOp("NOP", "", -1, []))
         except CheckError as ex:
             print(
@@ -112,11 +112,17 @@ class Matcher:
 
     def _post_check(self, op: CheckOp):
         if op.name != "NOT":
-            # work through CHECK-NOT checks
-            for check in self.ctx.negative_matches_stack:
-                self.check_not(check, self.ctx.negative_matches_start)
-            # reset the state
-            if self.ctx.negative_matches_stack:
+            if self.ctx.negative_matches_start is not None:
+                # work through CHECK-NOT checks
+                # this is the range we are searching in:
+                search_range = InputRange(
+                    self.ctx.negative_matches_start,
+                    self.file.range.start,
+                )
+                # run through all statements
+                for check in self.ctx.negative_matches_stack:
+                    self.check_not(check, search_range)
+                # reset the state
                 self.ctx.negative_matches_start = None
                 self.ctx.negative_matches_stack = []
         elif self.opts.match_full_lines:
@@ -132,14 +138,12 @@ class Matcher:
         for _ in range(op.count):
             self.match_eventually(op)
 
-    def check_not(self, op: CheckOp, start: int | None):
+    def check_not(self, op: CheckOp, search_range: InputRange):
         """
         Check that op doesn't match between start and current position.
         """
         pattern, _ = compile_uops(op, self.ctx.live_variables, self.opts)
-        if start is None:
-            start = 0
-        if self.file.find_between(pattern, start, self.file.pos):
+        if self.file.find_between(pattern, search_range):
             raise CheckError(
                 f"{self.opts.check_prefix}-NOT: excluded string found in input ('{op.arg}')"
             )
@@ -153,7 +157,7 @@ class Matcher:
 
         """
         if self.ctx.negative_matches_start is None:
-            self.ctx.negative_matches_start = self.file.pos
+            self.ctx.negative_matches_start = self.file.range.start
         self.ctx.negative_matches_stack.append(op)
 
     def check_label(self, op: CheckOp):
@@ -175,7 +179,7 @@ class Matcher:
         # move to match, if it's not already matched.
         (match,) = matches
         new_pos = match.end(0)
-        if new_pos < self.file.pos:
+        if new_pos < self.file.range.start:
             raise CheckError("Label was already checked")
 
         self.file.move_to(new_pos)
@@ -186,16 +190,14 @@ class Matcher:
 
     def check_empty(self, op: CheckOp):
         # check immediately
-        try:
-            self.match_immediately(op)
-        except CheckError as err:
+        if not self.opts.match_full_lines:
+            self.file.skip_to_end_of_line()
+        if not self.file.starts_with("\n\n"):
             raise CheckError(
                 f"{self.opts.check_prefix}-EMPTY: is not on the line after the previous match"
-            ) from err
-        # roll back the last newline, so that we are located at the end of the last line
-        # instead of at the start of the next line. This is important for CHECK-NEXT
-        # and friends
-        self.file.move_to(self.file.pos - 1)
+            )
+        # consume single newline
+        self.file.advance_by(1)
 
     def match_immediately(self, op: CheckOp):
         """
