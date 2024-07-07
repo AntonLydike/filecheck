@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "filecheck-ng"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Python-native clone of LLVMs FileCheck tool"
 authors = ["Anton Lydike <me@antonlydike.de>"]
 license = "GPL-3.0-or-later"
