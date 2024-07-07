@@ -25,7 +25,20 @@ class Options:
         # make sure we split the comment prefixes
         if isinstance(self.comment_prefixes, str):
             self.comment_prefixes = self.comment_prefixes.split(",")
-        self.extensions = set(Extension[val] for val in self.extensions)
+        extensions: set[Extension] = set()
+        for ext in self.extensions:
+            if isinstance(ext, str):
+                if ext in set(e.name for e in Extension):
+                    extensions.add(
+                        Extension[ext]  # pyright: ignore[reportArgumentType]
+                    )
+                else:
+                    print(
+                        f"Unknown filecheck extension: {ext}, supported are {list(e.name for e in Extension)}"
+                    )
+            else:
+                extensions.add(ext)
+        self.extensions = extensions
 
 
 def parse_argv_options(argv: list[str]) -> Options:

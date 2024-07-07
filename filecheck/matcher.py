@@ -234,7 +234,7 @@ class Matcher:
 
     def capture_results(
         self,
-        match: re.Match,
+        match: re.Match[str],
         capture: dict[str, tuple[int, Callable[[str], int] | Callable[[str], str]]],
     ):
         """

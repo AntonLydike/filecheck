@@ -62,9 +62,9 @@ Here's an overview of all FileCheck features and their implementation status.
     - [ ] Malformed regexes
 - **Infrastructure:**
   - [X] Formatting: black
-  - [X] Pyright: Almost passes rn
-  - [X] `pre-commit`: Didn't get to it yet
-  - [X] CI for formatting
+  - [X] Pyright
+  - [X] `pre-commit`
+  - [X] CI for everything
 
 We are open to PRs for bugfixes or any features listed here.
 

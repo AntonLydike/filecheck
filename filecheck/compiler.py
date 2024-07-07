@@ -1,5 +1,4 @@
 import re
-from typing import Callable
 
 from filecheck.error import ParseError
 from filecheck.ops import Literal, RE, Capture, NumSubst, Subst, CheckOp, VALUE_MAPPER_T

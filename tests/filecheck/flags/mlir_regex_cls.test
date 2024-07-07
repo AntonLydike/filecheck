@@ -1,8 +1,34 @@
 // RUN: strip-comments.sh %s | env FILECHECK_FEATURE_ENABLE=MLIR_REGEX_CLS filecheck %s
 
+// FILECHECK_FEATURE_ENABLE=MLIR_REGEX_CLS will provide a special regex class for SSA value names
+// this can be used as follows:
+
+// in regex and capture expressions, it matches an SSA value, including the `%`:
 %cst0_i32 = arith.constant 0 : index
 // CHECK: {{\V}} = arith.constant 0 : index
+
+// it also captures trailing `#\d+` by default:
 %144      = arith.addi %cst0_i32, %v#2 : index
-// CHECK: [[V1:\V]] = arith.addi {{\V}}, [[V2:\V]] : index
+// CHECK: [[V1:\V]] = arith.addi {{\V}}, [[VAL:\V]] : index
 %r        = arith.addi %144, %v#2 : index
-// CHECK: [[val:\V]] = arith.addi [[V1]], [[V2]] : index
+// we captured the exact SSA value, so now we can match against the whole value name (`%v#2`)
+// CHECK: [[val:\V]] = arith.addi [[V1]], [[VAL]] : index
+
+
+// It can also be used to capture the definition of a multi-var.
+// Here the exact counts need to be given separately (`:5`):
+%v:5 = memref.extract_strided_metadata ...
+// CHECK: [[METADATA:\V]]:5 = memref.extract_strided_metadata ...
+%r        = arith.addi %v#2, %v#3 : index
+// now we can match uses of this var, we just need to specify *which* exact index we want to match on:
+// CHECK-NEXT: arith.addi [[METADATA]]#2, [[METADATA]]#3 : index
+
+// we can also later on capture such a variable without a specific index
+// by specifying the index outside the expression ...
+%144      = arith.addi %cst0_i32, %v#2 : index
+// CHECK: [[V1:\V]] = arith.addi {{\V}}, [[VAL:\V]]#2 : index
+%r        = arith.addi %144, %v#2 : index
+// CHECK: [[val:\V]] = arith.addi [[V1]], [[VAL]]#2 : index
+// ... or inside the capture:
+%r        = arith.addi %v#1, %v#1 : index
+// CHECK:   arith.addi [[V1:\V#1]], [[V1]] : index
