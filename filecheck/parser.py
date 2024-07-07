@@ -8,8 +8,12 @@ import re
 
 from filecheck.error import ParseError
 from filecheck.ops import CheckOp, Literal, RE, Capture, Subst, NumSubst, UOp, CountOp
-from filecheck.options import Options, parse_argv_options
-from filecheck.regex import posix_to_python_regex, pattern_from_num_subst_spec
+from filecheck.options import Options, parse_argv_options, Extension
+from filecheck.regex import (
+    posix_to_python_regex,
+    pattern_from_num_subst_spec,
+    mlir_regex_extensions,
+)
 
 
 def pattern_for_opts(opts: Options) -> tuple[re.Pattern[str], re.Pattern[str]]:
@@ -159,9 +163,14 @@ class Parser(Iterator[CheckOp]):
                     part += parts.pop(0)
                 # check if we are a simple capture pattern [[<name>:<regex>]]
                 if match := VAR_CAPTURE_PATTERN.fullmatch(part):
+                    re_expr = posix_to_python_regex(match.group(2))
+                    if Extension.MLIR_REGEX_CLS in Extension:
+                        re_expr = mlir_regex_extensions(re_expr)
                     uops.append(
                         Capture(
-                            match.group(1), posix_to_python_regex(match.group(2)), str
+                            match.group(1),
+                            re_expr,
+                            str,
                         )
                     )
                 # check if we are a simple substitution pattern: [[<<name>>]]
@@ -197,7 +206,12 @@ class Parser(Iterator[CheckOp]):
                     part += parts.pop(0)
 
                 pattern = part[2:-2]
-                uops.append(RE(posix_to_python_regex(pattern)))
+
+                re_expr = posix_to_python_regex(pattern)
+                if Extension.MLIR_REGEX_CLS in Extension:
+                    re_expr = mlir_regex_extensions(re_expr)
+
+                uops.append(RE(re_expr))
             elif part != "":
                 uops.append(Literal(part))
             offset += len(part)

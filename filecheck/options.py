@@ -1,5 +1,11 @@
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Iterable
+import os
+
+
+class Extension(Enum):
+    MLIR_REGEX_CLS = "MLIR_REGEX_CLS"
 
 
 @dataclass
@@ -13,10 +19,13 @@ class Options:
     comment_prefixes: list[str] = "COM,RUN"  # type: ignore[reportAssignmentType]
     variables: dict[str, str | int] = field(default_factory=dict)
 
+    extensions: set[Extension] = field(default_factory=set)
+
     def __post_init__(self):
         # make sure we split the comment prefixes
         if isinstance(self.comment_prefixes, str):
             self.comment_prefixes = self.comment_prefixes.split(",")
+        self.extensions = set(Extension[val] for val in self.extensions)
 
 
 def parse_argv_options(argv: list[str]) -> Options:
@@ -29,6 +38,11 @@ def parse_argv_options(argv: list[str]) -> Options:
     # args that were consumed
     remove: set[int] = set()
     argv = list(normalise_args(argv))
+    # grab extensions from env:
+    extensions = set(os.getenv("FILECHECK_FEATURE_ENABLE", "").split(","))
+    # remove empty extension in case it made it in there
+    if "" in extensions:
+        extensions.remove("")
 
     for i, arg in enumerate(argv):
         # skip consumed args
@@ -71,6 +85,7 @@ def parse_argv_options(argv: list[str]) -> Options:
     return Options(
         **opts,  # pyright: ignore[reportArgumentType]
         variables=variables,
+        extensions=extensions,  # pyright: ignore[reportArgumentType]
     )
 
 

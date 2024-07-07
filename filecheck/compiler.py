@@ -83,4 +83,6 @@ def compile_uops(
     if check.name == "LABEL":
         expr.append(r"[^\n]*")
 
+    print(f"given: {check.arg}")
+    print(f"compiled: {re.compile(''.join(expr))}")
     return re.compile("".join(expr)), captures

@@ -100,3 +100,11 @@ We relax some of the matching rules, like:
 While our filecheck supports [numeric capture](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)
 (`[[#%.3x,VAR:]]` will capture a three-digit hex number), we don't support arithmetic expressions on these captured
 values at the moment. We also don't support the "Pseudo Numeric Variable" `@LINE`.
+
+### Special Feature Flags:
+
+This version of filecheck implements some non-standard extensions to LLVMs filecheck. These are disabled by default but
+can be enabled through the environment variable `FILECHECK_FEATURE_ENABLE=...`. Avialable extensions are documented here:
+
+- `MLIR_REGEX_CLS`: Add additional special regex matchers to match MLIR/LLVM constructs:
+  - `\V` will match any SSA value name (without the `%`)

@@ -32,6 +32,14 @@ def posix_to_python_regex(expr: str) -> str:
     return expr
 
 
+def mlir_regex_extensions(expr: str) -> str:
+    """
+    This implements the special extensions for MLIR regex classes, enabled with the
+    FILECHECK_FEATURE_ENABLE=MLIR_REGEX_CLS feature flag.
+    """
+    return expr.replace(r"\V", r"%([0-9]+|[A-Za-z_.$-][A-Za-z_.$0-9-]*)(#\d+)?")
+
+
 ENCODINGS_MAP = {
     "u": r"\d",
     "d": r"[+-]?\d",
