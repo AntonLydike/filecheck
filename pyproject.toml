@@ -21,6 +21,7 @@ black = "^24.4.2"
 lit = "^18.1.8"
 pre-commit = "^3.7.1"
 pyright = "^1.1.370"
+pytest = "^8.2.2"
 
 [tool.poetry.scripts]
 filecheck = "filecheck.main:main"
@@ -32,3 +33,9 @@ build-backend = "poetry.core.masonry.api"
 [tool.pyright]
 typeCheckingMode = "strict"
 "include" = ["filecheck"]
+
+[tool.pytest.ini_options]
+python_files = ["tests/*test_*.py"]
+python_classes = "Test_*"
+python_functions = "test_*"
+addopts = ["--durations=20", "--maxfail=5"]

@@ -24,6 +24,64 @@ class InputRange:
         return InputRange(self.start, new_end)
 
 
+@dataclass(slots=True)
+class DiscontigousRange(InputRange):
+    """
+    A range with holes in it.
+    """
+
+    _holes: list[InputRange] = field(default_factory=list, init=False)
+    """
+    This will only ever contain InputRange, never DiscontigousRange.
+
+    These holes are non-overlapping and sorted in ascending start positions.
+    """
+
+    def ranges(self) -> Iterable[tuple[int, int]]:
+        start = self.start
+        for hole in self._holes:
+            if start < hole.start:
+                yield start, hole.start
+            start = hole.end
+        if start < self.end:
+            yield start, self.end
+
+    def add_hole(self, range: InputRange):
+        may_have_overlap = False
+        for start, end in range.ranges():
+            for i, hole in enumerate(self._holes):
+                # check if they are disjunct:
+                if end < hole.start:
+                    # if it comes before, insert it
+                    self._holes.insert(i, InputRange(start, end))
+                    break
+                if hole.end < start:
+                    # if it comes later, continue
+                    continue
+                # we must have overlap, widen the hole!
+                hole.start = min(start, hole.start)
+                hole.end = max(end, hole.end)
+                may_have_overlap = True
+                break
+            else:
+                # append to the end otherwise
+                self._holes.append(InputRange(start, end))
+        if may_have_overlap:
+            # if we widened a hole, we need to check for overlap:
+            remove: list[InputRange] = list()
+            # iterate over pairs
+            for h1, h2 in zip(self._holes, self._holes[1:]):
+                # if we find overlap:
+                if h1.end >= h2.start:
+                    # widen the *second* hole
+                    h2.start = h1.start
+                    h2.end = max(h1.end, h2.end)
+                    # remove the first one
+                    remove.append(h1)
+            for r in remove:
+                self._holes.remove(r)
+
+
 @dataclass
 class FInput:
     """
