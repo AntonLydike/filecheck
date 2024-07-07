@@ -25,3 +25,11 @@ region_b:
 // CHECK-NEXT: op a
 // CHECK-NEXT: op b
 // CHECK-NEXT: op c
+
+
+@func(%arg0: i32)
+op %arg0
+
+// CHECK-LABEL: @func
+// CHECK-SAME: ([[arg:%[A-Za-z0-9]+]]: i32)
+// CHECK: op [[arg]]

@@ -78,10 +78,6 @@ def compile_uops(
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
 
-    # make sure CHECK-LABEL consumes entire line
-    if check.name == "LABEL":
-        expr.append(r"[^\n]*")
-
     print(f"given: {check.arg}")
     print(f"compiled: {re.compile(''.join(expr))}")
     return re.compile("".join(expr)), captures
