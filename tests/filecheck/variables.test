@@ -36,3 +36,9 @@ print -100 -100
 
 mov r0, r1
 // CHECK: mov r0, r[[#]]
+
+// capturing two variables in the same line
+commutativity states that (x * y) = (y * x)
+// CHECK: ([[a:(\w+)(x?)]] * [[b:(\w+)(x?)]]) = ([[b]] * [[a]])
+again: (x * y) = (y * x)
+// CHECK: ([[a]] * [[b]]) = ([[b]] * [[a]])

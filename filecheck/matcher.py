@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from typing import Callable
 
@@ -200,8 +201,7 @@ class Matcher:
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         if match := self.file.match(pattern):
             self.file.move_to(match.end(0))
-            for var, group in repl.items():
-                self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
+            self.capture_results(match, repl)
         else:
             raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
 
@@ -214,9 +214,7 @@ class Matcher:
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         if match := self.file.find(pattern, op.name == "SAME"):
             self.file.move_to(match.end())
-            for var, group in repl.items():
-                self.ctx.live_variables[var.name] = var.value_mapper(match.group(group))
-
+            self.capture_results(match, repl)
         else:
             raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
 
@@ -233,3 +231,15 @@ class Matcher:
         for key in tuple(self.ctx.live_variables.keys()):
             if not key.startswith("$"):
                 self.ctx.live_variables.pop(key)
+
+    def capture_results(
+        self,
+        match: re.Match,
+        capture: dict[str, tuple[int, Callable[[str], int] | Callable[[str], str]]],
+    ):
+        """
+        Capture the results of a match into variables for string substitution
+        """
+        for name, (group, mapper) in capture.items():
+            print(f"assigning variable {name} = {match.group(group)}")
+            self.ctx.live_variables[name] = mapper(match.group(group))

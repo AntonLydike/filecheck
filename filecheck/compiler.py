@@ -1,7 +1,8 @@
 import re
+from typing import Callable
 
 from filecheck.error import ParseError
-from filecheck.ops import Literal, RE, Capture, NumSubst, Subst, CheckOp
+from filecheck.ops import Literal, RE, Capture, NumSubst, Subst, CheckOp, VALUE_MAPPER_T
 from filecheck.options import Options
 
 UNESCAPED_BRACKETS = re.compile(r"^\(|[^\\]\(")
@@ -11,7 +12,7 @@ CHECK_EMPTY_EXPR = re.compile(r"[^\n]*\n\n")
 
 def compile_uops(
     check: CheckOp, variables: dict[str, str | int], opts: Options
-) -> tuple[re.Pattern[str], dict[Capture, int]]:
+) -> tuple[re.Pattern[str], dict[str, tuple[int, VALUE_MAPPER_T]]]:
     """
     Compile a series of uops, given a set of variables, to a regex pattern and an
     extraction dictionary.
@@ -26,8 +27,7 @@ def compile_uops(
     elif check.name == "EMPTY":
         return CHECK_EMPTY_EXPR, dict()
 
-    captures: dict[Capture, int] = dict()
-    var_to_group: dict[str, int] = dict()
+    captures: dict[str, tuple[int, VALUE_MAPPER_T]] = dict()
 
     for uop in check.uops:
         if isinstance(uop, Literal):
@@ -53,18 +53,18 @@ def compile_uops(
             expr.append(uop.content)
         elif isinstance(uop, Capture):
             # record the group we capture in the dictionary
-            captures[uop] = groups + 1
+            captures[uop.name] = (groups + 1, uop.value_mapper)
             # this is used to match same-line use of variables
             # like this:
             # // CHECK: alloc [[REG:[a-z]+]], [[REG]]
             # here we can't insert the value now, as it will only be determined when we
             # match the pattern. Luckily, python regex has backwards references.
-            var_to_group[uop.name] = groups + 1
             expr.append(f"({uop.pattern})")
+            groups += len(UNESCAPED_BRACKETS.findall(uop.pattern)) + 1
         elif isinstance(uop, Subst):
             # if we have substitutions, check if the variable is defined in this line
-            if uop.variable in var_to_group:
-                expr.append(f"\\{var_to_group[uop.variable]}")
+            if uop.variable in captures:
+                expr.append(f"\\{captures[uop.variable][0]}")
             else:
                 # otherwise match immediate
                 if uop.variable not in variables:

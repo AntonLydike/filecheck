@@ -1,10 +1,12 @@
 from __future__ import annotations
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, TypeAlias
 
 from filecheck.options import Options
 
 OP_KINDS = ("DAG", "COUNT", "NOT", "EMPTY", "NEXT", "SAME", "LABEL", "CHECK")
+
+VALUE_MAPPER_T: TypeAlias = Callable[[str], int] | Callable[[str], str]
 
 
 @dataclass(slots=True)
@@ -88,7 +90,7 @@ class Capture(UOp):
 
     name: str
     pattern: str
-    value_mapper: Callable[[str], int] | Callable[[str], str]
+    value_mapper: VALUE_MAPPER_T
 
 
 @dataclass(frozen=True, slots=True)
