@@ -1,0 +1,8 @@
+// RUN: strip-comments.sh %s | env FILECHECK_FEATURE_ENABLE=MLIR_REGEX_CLS filecheck %s
+
+%cst0_i32 = arith.constant 0 : index
+// CHECK: {{\V}} = arith.constant 0 : index
+%144      = arith.addi %cst0_i32, %v#2 : index
+// CHECK: [[V1:\V]] = arith.addi {{\V}}, [[V2:\V]] : index
+%r        = arith.addi %144, %v#2 : index
+// CHECK: [[val:\V]] = arith.addi [[V1]], [[V2]] : index
