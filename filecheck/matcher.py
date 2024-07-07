@@ -186,7 +186,12 @@ class Matcher:
 
     def check_empty(self, op: CheckOp):
         # check immediately
-        self.match_immediately(op)
+        try:
+            self.match_immediately(op)
+        except CheckError as err:
+            raise CheckError(
+                f"{self.opts.check_prefix}-EMPTY: is not on the line after the previous match"
+            ) from err
         # roll back the last newline, so that we are located at the end of the last line
         # instead of at the start of the next line. This is important for CHECK-NEXT
         # and friends

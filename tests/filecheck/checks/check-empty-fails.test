@@ -1,0 +1,8 @@
+// RUN: strip-comments.sh %s | exfail filecheck %s --comment-prefixes=RUN,COM,DIAG | filecheck %s --check-prefix=DIAG
+
+test 1
+not empty
+// CHECK: test 1
+// CHECK-EMPTY:
+
+// DIAG: error: CHECK-EMPTY: is not on the line after the previous match
