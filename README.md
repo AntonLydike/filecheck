@@ -17,7 +17,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `CHECK-LABEL` [#1](https://github.com/AntonLydike/filecheck/issues/1)
   - [X] `CHECK-EMPTY`
   - [X] `CHECK-SAME`
-  - [ ] `CHECK-DAG` [#2](https://github.com/AntonLydike/filecheck/issues/2)
+  - [X] `CHECK-DAG`
   - [X] `CHECK-COUNT`
 - **Flags:**
   - [X] `--check-prefix`

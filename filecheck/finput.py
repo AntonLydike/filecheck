@@ -30,7 +30,7 @@ class DiscontigousRange(InputRange):
     A range with holes in it.
     """
 
-    _holes: list[InputRange] = field(default_factory=list, init=False)
+    _holes: list[InputRange] = field(default_factory=list, init=False, repr=False)
     """
     This will only ever contain InputRange, never DiscontigousRange.
 
@@ -46,7 +46,7 @@ class DiscontigousRange(InputRange):
         if start < self.end:
             yield start, self.end
 
-    def add_hole(self, range: InputRange):
+    def add_hole(self, range: InputRange | DiscontigousRange):
         may_have_overlap = False
         for start, end in range.ranges():
             for i, hole in enumerate(self._holes):
@@ -80,6 +80,19 @@ class DiscontigousRange(InputRange):
                     remove.append(h1)
             for r in remove:
                 self._holes.remove(r)
+
+    def end_of_last_hole(self) -> int:
+        if self._holes:
+            return max(self._holes[-1].end, self.start)
+        return self.start
+
+    def start_of_first_hole(self) -> int:
+        if self._holes:
+            return min(self._holes[0].start, self.end)
+        return self.end
+
+    def remainder_to_normal_range(self) -> InputRange:
+        return InputRange(self.end_of_last_hole(), self.end)
 
 
 @dataclass
@@ -119,10 +132,8 @@ class FInput:
             "\n", self.range.start, self.range.start + dist
         )
         self.range.start += dist
-
-        while self.range.start > self.range.end != -1:
-            next_range = self.ranges.pop(0)
-            next_range.start = min(self.range.start, next_range.start)
+        if self.range.end < self.range.start:
+            raise RuntimeError("Ran out of range!")
 
     def move_to(self, new_pos: int):
         """
@@ -134,8 +145,7 @@ class FInput:
         """
         Match (exactly from the current position)
         """
-        for start, end in self.range.ranges():
-            return pattern.match(self.content, pos=start, endpos=end)
+        return pattern.match(self.content, pos=self.range.start, endpos=self.range.end)
 
     def find(
         self,
@@ -147,25 +157,28 @@ class FInput:
 
         If this_line is given, match only until the next newline.
         """
-        range = self.range
+        irange = self.range
 
         newline = (
-            self.content.find("\n", range.start, range.end) if this_line else range.end
+            self.content.find("\n", irange.start, irange.end)
+            if this_line
+            else irange.end
         )
         if newline != -1:
-            range = range.restrict_end(newline)
+            irange = irange.restrict_end(newline)
 
-        for start, end in range.ranges():
-            return pattern.search(self.content, pos=start, endpos=end)
+        return pattern.search(self.content, pos=irange.start, endpos=irange.end)
 
     def find_between(
-        self, pattern: re.Pattern[str], range: InputRange
+        self, pattern: re.Pattern[str], irange: InputRange
     ) -> re.Match[str] | None:
         """
         Find the first occurance of a pattern, might be far away.
         """
-        for start, end in range.ranges():
-            return pattern.search(self.content, pos=start, endpos=end)
+        for start, end in irange.ranges():
+            match = pattern.search(self.content, pos=start, endpos=end)
+            if match is not None:
+                return match
 
     def print_line_with_current_pos(self, pos_override: int | None = None):
         """
@@ -221,3 +234,39 @@ class FInput:
     def print_range(self, frange: InputRange):
         print(f"{self.fname}: ({frange.start} to {frange.end})")
         print(self.content[frange.start : frange.end])
+
+    def start_discontigous_region(self):
+        """
+        Starts a discontigous matching region, replacing the current range with a
+        discontigous one.
+        """
+        assert not isinstance(self.range, DiscontigousRange)
+        self.range = DiscontigousRange(self.range.start, self.range.end)
+
+    def match_and_add_hole(self, pattern: re.Pattern[str]) -> re.Match[str] | None:
+        """
+        Find the first occurance of a pattern in a discontigous range.
+
+        Adds the matched region as a hole to the range.
+
+        Can only be called *after* start_discontigous_region
+        """
+        assert isinstance(self.range, DiscontigousRange)
+        match = self.find_between(pattern, self.range)
+        if match is not None:
+            self.range.add_hole(InputRange(match.start(0), match.end(0)))
+        return match
+
+    def advance_to_last_hole(self):
+        """
+        Advance to end of the last hole in the discontigous region
+        """
+        assert isinstance(self.range, DiscontigousRange)
+        print(f"moving to {self.range.end_of_last_hole()} of {self.range}")
+        new_range = self.range.remainder_to_normal_range()
+        self.move_to(new_range.start)
+        self.range = new_range
+
+    def is_discontigous(self) -> DiscontigousRange | None:
+        if isinstance(self.range, DiscontigousRange):
+            return self.range

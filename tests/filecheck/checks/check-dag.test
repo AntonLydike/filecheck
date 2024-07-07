@@ -1,0 +1,26 @@
+// RUN: strip-comments.sh %s | filecheck %s
+
+test b = 2
+test a = 1
+test c = 3
+add a + b = c
+test final
+
+// CHECK-DAG: test [[v1:\w+]] = 1
+// CHECK-DAG: test [[v2:\w+]] = 2
+// CHECK-DAG: test [[v3:\w+]] = 3
+// CHECK-DAG: add [[v1]] + [[v2]] = [[v3]]
+// CHECK: test final
+
+test b = 2
+test a = 1
+test c = 3
+add a + b = c
+test final
+
+// CHECK-DAG: test [[v1:\w+]] = 1
+// CHECK-DAG: test [[v2:\w+]] = 2
+// CHECK-NOT: test final
+// CHECK-DAG: test [[v3:\w+]] = 3
+// CHECK-DAG: add [[v1]] + [[v2]] = [[v3]]
+// CHECK: test final

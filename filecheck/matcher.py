@@ -107,17 +107,25 @@ class Matcher:
         return 0
 
     def _pre_check(self, op: CheckOp):
+        if self.file.is_discontigous() and op.name != "DAG":
+            self.file.advance_to_last_hole()
         if op.name == "NEXT":
             self.file.skip_to_end_of_line()
 
     def _post_check(self, op: CheckOp):
         if op.name != "NOT":
             if self.ctx.negative_matches_start is not None:
+                end = self.file.range.start
+                # catch cases where the CHECK-NOT is followed by CHECK-DAG
+                # in that case, go until the first "hole" in the region
+                disc = self.file.is_discontigous()
+                if disc:
+                    end = disc.start_of_first_hole()
                 # work through CHECK-NOT checks
                 # this is the range we are searching in:
                 search_range = InputRange(
                     self.ctx.negative_matches_start,
-                    self.file.range.start,
+                    end,
                 )
                 # run through all statements
                 for check in self.ctx.negative_matches_stack:
@@ -130,7 +138,15 @@ class Matcher:
                 raise CheckError("Didn't match whole line")
 
     def check_dag(self, op: CheckOp) -> None:
-        raise NotImplementedError()
+        if not self.file.is_discontigous():
+            self.file.start_discontigous_region()
+        pattern, capture = compile_uops(op, self.ctx.live_variables, self.opts)
+        match = self.file.match_and_add_hole(pattern)
+        if match is None:
+            raise CheckError(
+                f"{self.opts.check_prefix}-DAG: Can't find match ('{op.arg}')"
+            )
+        self.capture_results(match, capture)
 
     def check_count(self, op: CheckOp) -> None:
         # invariant preserved by parser
