@@ -1,6 +1,6 @@
 import re
 
-from filecheck.error import ParseError
+from filecheck.error import CheckError
 from filecheck.ops import Literal, RE, Capture, NumSubst, Subst, CheckOp, VALUE_MAPPER_T
 from filecheck.options import Options
 
@@ -67,17 +67,13 @@ def compile_uops(
             else:
                 # otherwise match immediate
                 if uop.variable not in variables:
-                    raise ParseError(
+                    raise CheckError(
                         f"Variable {uop.variable} referenced before assignment",
-                        check.source_line,
-                        0,
-                        check.check_line_repr(),
+                        check,
                     )
                 expr.append(re.escape(str(variables[uop.variable])))
         elif isinstance(uop, NumSubst):
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
 
-    print(f"given: {check.arg}")
-    print(f"compiled: {re.compile(''.join(expr))}")
     return re.compile("".join(expr)), captures

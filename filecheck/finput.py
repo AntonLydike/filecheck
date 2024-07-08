@@ -23,6 +23,16 @@ class InputRange:
     def restrict_end(self, new_end: int):
         return InputRange(self.start, new_end)
 
+    def split_at(self, match: re.Match[str]):
+        """
+        Split this range at match by truncating the end of this range to the start of
+        the match, and returning a new range starting at the end of the match, until
+        the original end of this range.
+        """
+        next_range = InputRange(match.end(0), self.end)
+        self.end = match.start(0)
+        return next_range
+
 
 @dataclass(slots=True)
 class DiscontigousRange(InputRange):
@@ -270,3 +280,10 @@ class FInput:
     def is_discontigous(self) -> DiscontigousRange | None:
         if isinstance(self.range, DiscontigousRange):
             return self.range
+
+    def advance_range(self):
+        """
+        Move to the next input range.
+        """
+        assert self.ranges
+        self.range = self.ranges.pop(0)

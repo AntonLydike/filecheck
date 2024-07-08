@@ -2,12 +2,13 @@ import re
 from dataclasses import dataclass, field
 from typing import Callable
 
+from filecheck.compiler import compile_uops
+from filecheck.error import CheckError, ParseError
 from filecheck.finput import FInput, InputRange
 from filecheck.ops import CheckOp, CountOp
 from filecheck.options import Options
 from filecheck.parser import Parser
-from filecheck.compiler import compile_uops
-from filecheck.error import CheckError, ParseError
+from filecheck.preprocess import Preprocessor
 
 
 @dataclass
@@ -63,6 +64,19 @@ class Matcher:
                 print(f"filecheck error: '{self.opts.readable_input_file()}' is empty.")
                 return 1
 
+        try:
+            ops = tuple(self.operations)
+            if not ops:
+                print(
+                    f"Error: No check strings found with prefix {self.opts.check_prefix}:"
+                )
+                return 2
+        except ParseError as ex:
+            print(f"{self.opts.match_filename}:{ex.line_no}:{ex.offset} {ex.message}")
+            print(ex.offending_line.rstrip("\n"))
+            print(" " * (ex.offset - 1) + "^")
+            return 1
+
         function_table: dict[str, Callable[[CheckOp], None]] = {
             "DAG": self.check_dag,
             "COUNT": self.check_count,
@@ -73,21 +87,25 @@ class Matcher:
             "LABEL": self.check_label,
             "CHECK": self.match_eventually,
         }
-        checks = 0
+
         op: CheckOp | None = None
         try:
-            for op in self.operations:
-                checks += 1
+            # run the preprocessor
+            Preprocessor(self.opts, self.file, ops).run()
+
+            # then run the checks
+            for op in ops:
                 self._pre_check(op)
                 function_table.get(op.name, self.fail_op)(op)
                 self._post_check(op)
 
-            # run the post-check one last time to make sure all NOT checks are taken care of.
+            # run the post-check one last time to make sure all NOT checks are taken
+            # care of.
             self.file.range.start = len(self.file.content) - 1
             self._post_check(CheckOp("NOP", "", -1, []))
         except CheckError as ex:
             print(
-                f"{self.opts.match_filename}:{self.operations.line_no}: error: {ex.message}"
+                f"{self.opts.match_filename}:{ex.op.source_line}: error: {ex.message}"
             )
             self.file.print_line_with_current_pos()
 
@@ -98,17 +116,7 @@ class Matcher:
                     self.file.print_line_with_current_pos(match.start(0))
 
             return 1
-        except ParseError as ex:
-            print(f"{self.opts.match_filename}:{ex.line_no}:{ex.offset} {ex.message}")
-            print(ex.offending_line.rstrip("\n"))
-            print(" " * (ex.offset - 1) + "^")
-            return 1
 
-        if checks == 0:
-            print(
-                f"Error: No check strings found with prefix {self.opts.check_prefix}:"
-            )
-            return 2
         return 0
 
     def _pre_check(self, op: CheckOp):
@@ -116,6 +124,17 @@ class Matcher:
             self.file.advance_to_last_hole()
         if op.name == "NEXT":
             self.file.skip_to_end_of_line()
+        elif op.name == "LABEL" and self.ctx.negative_matches_start is not None:
+            # we sadly need to special case the check-label here
+            # run through all statements
+            search_range = InputRange(
+                self.ctx.negative_matches_start, self.file.range.end
+            )
+            for check in self.ctx.negative_matches_stack:
+                self.check_not(check, search_range)
+            # reset the state
+            self.ctx.negative_matches_start = None
+            self.ctx.negative_matches_stack = []
 
     def _post_check(self, op: CheckOp):
         if op.name != "NOT":
@@ -140,7 +159,10 @@ class Matcher:
                 self.ctx.negative_matches_stack = []
         elif self.opts.match_full_lines:
             if not self.file.is_end_of_line():
-                raise CheckError("Didn't match whole line")
+                raise CheckError(
+                    "Didn't match whole line",
+                    op,
+                )
 
     def check_dag(self, op: CheckOp) -> None:
         if not self.file.is_discontigous():
@@ -149,7 +171,8 @@ class Matcher:
         match = self.file.match_and_add_hole(pattern)
         if match is None:
             raise CheckError(
-                f"{self.opts.check_prefix}-DAG: Can't find match ('{op.arg}')"
+                f"{self.opts.check_prefix}-DAG: Can't find match ('{op.arg}')",
+                op,
             )
         self.capture_results(match, capture)
 
@@ -166,7 +189,8 @@ class Matcher:
         pattern, _ = compile_uops(op, self.ctx.live_variables, self.opts)
         if self.file.find_between(pattern, search_range):
             raise CheckError(
-                f"{self.opts.check_prefix}-NOT: excluded string found in input ('{op.arg}')"
+                f"{self.opts.check_prefix}-NOT: excluded string found in input ('{op.arg}')",
+                op,
             )
 
     def enqueue_not(self, op: CheckOp):
@@ -189,25 +213,9 @@ class Matcher:
 
         CHECK-LABEL: directives cannot contain variable definitions or uses.
         """
-        pattern, _ = compile_uops(op, self.ctx.live_variables, self.opts)
-        # match in whole file
-        matches = tuple(pattern.finditer(self.file.content))
-        # check that we found exactly one match
-        if not matches:
-            raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
-        if len(matches) != 1:
-            raise CheckError(f"Non-unique {op.check_line_repr()} found")
-        # move to match, if it's not already matched.
-        (match,) = matches
-        new_pos = match.end(0)
-        if new_pos < self.file.range.start:
-            raise CheckError("Label was already checked")
-
-        self.file.move_to(new_pos)
-
-        # remove non $ variables if option is set
-        if self.opts.enable_var_scope:
-            self.purge_variables()
+        # label checking was done by the preprocessing step, all we need to do is
+        # move to the next range.
+        self.file.advance_range()
 
     def check_empty(self, op: CheckOp):
         # check immediately
@@ -215,7 +223,8 @@ class Matcher:
             self.file.skip_to_end_of_line()
         if not self.file.starts_with("\n\n"):
             raise CheckError(
-                f"{self.opts.check_prefix}-EMPTY: is not on the line after the previous match"
+                f"{self.opts.check_prefix}-EMPTY: is not on the line after the previous match",
+                op,
             )
         # consume single newline
         self.file.advance_by(1)
@@ -231,7 +240,7 @@ class Matcher:
             self.file.move_to(match.end(0))
             self.capture_results(match, repl)
         else:
-            raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
+            raise CheckError(f'Couldn\'t match "{op.arg}".', op, pattern=pattern)
 
     def match_eventually(self, op: CheckOp):
         """
@@ -244,7 +253,7 @@ class Matcher:
             self.file.move_to(match.end())
             self.capture_results(match, repl)
         else:
-            raise CheckError(f'Couldn\'t match "{op.arg}".', pattern=pattern)
+            raise CheckError(f'Couldn\'t match "{op.arg}".', op, pattern=pattern)
 
     def fail_op(self, op: CheckOp):
         """

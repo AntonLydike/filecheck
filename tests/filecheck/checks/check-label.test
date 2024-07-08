@@ -10,6 +10,10 @@ region_a:
 // CHECK-NEXT: op 2
 // CHECK-NEXT: op 3
 
+// CHECK-NOT: bad op
+// CHECK-NOT: region_middle
+
+// CHECK-LABEL: region_middle
 
 region_middle:
     bad op

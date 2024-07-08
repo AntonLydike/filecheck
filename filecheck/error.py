@@ -1,15 +1,21 @@
 import re
 from typing import Any
 
+from filecheck.ops import CheckOp
+
 
 class CheckError(Exception):
     message: str
+    op: CheckOp
     pattern: re.Pattern[str] | None
 
-    def __init__(self, msg: str, *args: Any, pattern: re.Pattern[str] | None = None):
+    def __init__(
+        self, msg: str, op: CheckOp, *args: Any, pattern: re.Pattern[str] | None = None
+    ):
+        super().__init__(*args)
         self.message = msg
+        self.op = op
         self.pattern = pattern
-        super().__init__(args)
 
 
 class ParseError(Exception):

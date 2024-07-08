@@ -1,9 +1,12 @@
 # filecheck - A Python-native clone of LLVMs FileCheck tool
 
-This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1209 out of
-1645 (73%) of LLVMs MLIR filecheck tests.
+This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1530 out of
+1645 (93%) of LLVMs MLIR filecheck tests.
 
-There are some features that are left out for now (e.g. [pseudo-numeric variables](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables) and parts of [numeric substitution](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)).
+There are some features that are left out for now (e.g.a
+[pseudo-numeric variables](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables) and
+parts of [numeric substitution](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)
+).
 
 The codebase is fully type checked by `pyright`, and automatically formatted using `black`. We aim to have tests
 covering everything from normal matching down to error messages.
@@ -15,7 +18,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `CHECK`
   - [X] `CHECK-NEXT`
   - [X] `CHECK-NOT`
-  - [X] `CHECK-LABEL` [#1](https://github.com/AntonLydike/filecheck/issues/1)
+  - [X] `CHECK-LABEL`
   - [X] `CHECK-EMPTY`
   - [X] `CHECK-SAME`
   - [X] `CHECK-DAG`

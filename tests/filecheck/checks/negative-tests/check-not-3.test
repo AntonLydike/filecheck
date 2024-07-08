@@ -5,4 +5,4 @@ test3
 // CHECK: test2
 // CHECK-NOT: test3
 
-// DIAG: check-not-3.test:9: error: CHECK-NOT: excluded string found in input ('test3')
+// DIAG: check-not-3.test:6: error: CHECK-NOT: excluded string found in input ('test3')
