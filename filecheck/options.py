@@ -16,6 +16,7 @@ class Options:
     strict_whitespace: bool = False
     enable_var_scope: bool = False
     match_full_lines: bool = False
+    allow_empty: bool = False
     comment_prefixes: list[str] = "COM,RUN"  # type: ignore[reportAssignmentType]
     variables: dict[str, str | int] = field(default_factory=dict)
 
@@ -39,6 +40,11 @@ class Options:
             else:
                 extensions.add(ext)
         self.extensions = extensions
+
+    def readable_input_file(self):
+        if self.input_file == "-":
+            return "<stdin>"
+        return self.input_file
 
 
 def parse_argv_options(argv: list[str]) -> Options:

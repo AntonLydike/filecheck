@@ -58,6 +58,11 @@ class Matcher:
 
         Prints a nice message when it fails.
         """
+        if not self.opts.allow_empty:
+            if self.file.content in ("", "\n"):
+                print(f"filecheck error: '{self.opts.readable_input_file()}' is empty.")
+                return 1
+
         function_table: dict[str, Callable[[CheckOp], None]] = {
             "DAG": self.check_dag,
             "COUNT": self.check_count,

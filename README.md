@@ -39,7 +39,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [ ] `-v`
   - [ ] `-vv`
   - [ ] `--allow-deprecated-dag-overlap` Not sure what this means yet.
-  - [ ] `--allow-empty` (I think I allow empty input rn?)
+  - [X] `--allow-empty`
   - [ ] `--color` No color support yet
 - **Base Features:**
   - [X] Regex patterns

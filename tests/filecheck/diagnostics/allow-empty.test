@@ -1,0 +1,3 @@
+// RUN: strip-comments.sh %s | exfail filecheck %s --comment-prefixes=RUN,COM,DIAG | filecheck %s --check-prefix=DIAG
+// CHECK-NOT: empty
+// DIAG: filecheck error: '<stdin>' is empty.

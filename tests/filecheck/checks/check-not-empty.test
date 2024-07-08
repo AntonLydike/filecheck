@@ -1,0 +1,3 @@
+// RUN: strip-comments.sh %s | filecheck %s --allow-empty
+// CHECK-NOT: error
+// line left empty on purpose

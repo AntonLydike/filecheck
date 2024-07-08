@@ -184,7 +184,7 @@ class FInput:
         """
         Print the current position in the input file.
         """
-        fname = self.fname if self.fname != "-" else "stdin"
+        fname = self.fname if self.fname != "-" else "<stdin>"
         pos = self.range.start if pos_override is None else pos_override
         next_newline_at = self.content.find("\n", pos)
 
