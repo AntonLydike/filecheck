@@ -34,5 +34,8 @@ jobs:
 
     - name: Execute lit tests
       run: |
-        export PYTHONPATH=$(pwd)
         poetry run lit -v tests/filecheck/
+
+    - name: Execute pytest tests
+      run: |
+        poetry run pytest
