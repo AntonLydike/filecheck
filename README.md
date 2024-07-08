@@ -17,20 +17,20 @@ Here's an overview of all FileCheck features and their implementation status.
 - **Checks:**
   - [X] `CHECK`
   - [X] `CHECK-NEXT`
-  - [X] `CHECK-NOT`
-  - [X] `CHECK-LABEL`
+  - [X] `CHECK-NOT` (Bug: [#10](https://github.com/AntonLydike/filecheck/issues/10))
+  - [X] `CHECK-LABEL` (Bug: [#8](https://github.com/AntonLydike/filecheck/issues/8))
   - [X] `CHECK-EMPTY`
   - [X] `CHECK-SAME`
   - [X] `CHECK-DAG`
   - [X] `CHECK-COUNT`
 - **Flags:**
   - [X] `--check-prefix`
-  - [ ] `--check-prefixes`
+  - [ ] `--check-prefixes` (Tracking: [#13](https://github.com/AntonLydike/filecheck/issues/13))
   - [X] `--comment-prefixes`
   - [ ] `--allow-unused-prefixes`
   - [X] `--input-file`
   - [X] `--match-full-lines`
-  - [X] `--strict-whitespace` (Kinda? Seems to be working.)
+  - [X] `--strict-whitespace` (Bug: [#6](https://github.com/AntonLydike/filecheck/issues/6))
   - [ ] `--ignore-case`
   - [ ] `--implicit-check-not`
   - [ ] `--dump-input`
@@ -46,12 +46,12 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `--allow-empty`
   - [ ] `--color` No color support yet
 - **Base Features:**
-  - [X] Regex patterns
-  - [X] Captures and Capture Matches
+  - [X] Regex patterns (Bugs: [#3](https://github.com/AntonLydike/filecheck/issues/3), [#7](https://github.com/AntonLydike/filecheck/issues/7), [#9](https://github.com/AntonLydike/filecheck/issues/9))
+  - [X] Captures and Capture Matches (Diverges: [#5](https://github.com/AntonLydike/filecheck/issues/5), [#12](https://github.com/AntonLydike/filecheck/issues/12) Bug: [#11](https://github.com/AntonLydike/filecheck/issues/11))
   - [X] Numeric Captures
   - [ ] Numeric Substitutions (jesus christ, wtf man)
   - [X] Literal matching (`CHECK{LITERAL}`)
-  - [X] Weird regex features (`[:xdigits:]` and friends)
+  - [X] Weird regex features (`[:xdigits:]` and friends) (Bug: [#4](https://github.com/AntonLydike/filecheck/issues/4))
   - [X] Correct(?) handling of matching check lines
 - **Testing:**
   - [X] Base cases
