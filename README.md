@@ -111,4 +111,4 @@ This version of filecheck implements some non-standard extensions to LLVMs filec
 can be enabled through the environment variable `FILECHECK_FEATURE_ENABLE=...`. Avialable extensions are documented here:
 
 - `MLIR_REGEX_CLS`: Add additional special regex matchers to match MLIR/LLVM constructs:
-  - `\V` will match any SSA value name (without the `%`)
+  - `\V` will match any SSA value name
