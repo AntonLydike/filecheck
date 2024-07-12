@@ -1,7 +1,7 @@
 # filecheck - A Python-native clone of LLVMs FileCheck tool
 
-This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1530 out of
-1645 (93%) of LLVMs MLIR filecheck tests.
+This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1555 out of
+1645 (94.5%) of LLVMs MLIR filecheck tests.
 
 There are some features that are left out for now (e.g.a
 [pseudo-numeric variables](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables) and
