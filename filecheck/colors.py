@@ -18,7 +18,7 @@ class FMT(Flag):
     def __str__(self) -> str:
         if not COLOR_SUPPORT:
             return ""
-        fmt_str = []
+        fmt_str: list[str] = []
         for f in self:
             match f:
                 case FMT.RED:
@@ -39,6 +39,8 @@ class FMT(Flag):
                     fmt_str.append("\033[0m")
                 case FMT.UNDERLINE:
                     fmt_str.append("\033[4m")
+                case _:
+                    raise ValueError(f"Unknown color {f}")
         return "".join(fmt_str)
 
 
