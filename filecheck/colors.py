@@ -19,28 +19,26 @@ class FMT(Flag):
         if not COLOR_SUPPORT:
             return ""
         fmt_str: list[str] = []
-        for f in self:
-            match f:
-                case FMT.RED:
-                    fmt_str.append("\033[31m")
-                case FMT.ORANGE:
-                    fmt_str.append("\033[33m")
-                case FMT.GRAY:
-                    fmt_str.append("\033[37m")
-                case FMT.GREEN:
-                    fmt_str.append("\033[32m")
-                case FMT.BLUE:
-                    fmt_str.append("\033[34m")
-                case FMT.YELLOW:
-                    fmt_str.append("\033[93m")
-                case FMT.BOLD:
-                    fmt_str.append("\033[1m")
-                case FMT.RESET:
-                    fmt_str.append("\033[0m")
-                case FMT.UNDERLINE:
-                    fmt_str.append("\033[4m")
-                case _:
-                    raise ValueError(f"Unknown color {f}")
+
+        if FMT.RED in self:
+            fmt_str.append("\033[31m")
+        if FMT.ORANGE in self:
+            fmt_str.append("\033[33m")
+        if FMT.GRAY in self:
+            fmt_str.append("\033[37m")
+        if FMT.GREEN in self:
+            fmt_str.append("\033[32m")
+        if FMT.BLUE in self:
+            fmt_str.append("\033[34m")
+        if FMT.YELLOW in self:
+            fmt_str.append("\033[93m")
+        if FMT.BOLD in self:
+            fmt_str.append("\033[1m")
+        if FMT.RESET in self:
+            fmt_str.append("\033[0m")
+        if FMT.UNDERLINE in self:
+            fmt_str.append("\033[4m")
+
         return "".join(fmt_str)
 
 
