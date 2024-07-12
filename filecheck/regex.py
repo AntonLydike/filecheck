@@ -16,10 +16,27 @@ POSIX_REGEXP_REPLACEMENTS = {
     "word": r"\w+",
 }
 
+NEGATED_SET_WITHOUT_NEWLINES = re.compile(r"([^\\]|^)\[\^((?!\\n))")
+
 
 def posix_to_python_regex(expr: str) -> str:
     """
     We need to translate things like `[:alpha:]` to `[A-Za-z]`, etc.
+
+    This also takes care of a little known fact about the llvm::Regex implementation:
+
+    ```
+    enum llvm::Regex::RegexFlags::Newline = 2U
+
+    Compile for newline-sensitive matching. With this flag '[^' bracket
+    expressions and '.' never match newline. A ^ anchor matches the
+    null string after any newline in the string in addition to its normal
+    function, and the $ anchor matches the null string before any
+    newline in the string in addition to its normal function.
+    ```
+
+    This bad boy is enabled in all FileCheck cases, meaning we need to also add `\n` to all
+    negative bracket expressions, otherwise we'll eat *so* many newlines.
 
     LLVM supports them, but pythons regex doesn't.
     """
@@ -29,6 +46,9 @@ def posix_to_python_regex(expr: str) -> str:
                 f"Can't translate posix regex, unknown character set: {match.group(1)}"
             )
         expr = expr.replace(match.group(0), POSIX_REGEXP_REPLACEMENTS[match.group(1)])
+
+    expr = NEGATED_SET_WITHOUT_NEWLINES.sub(r"\1[^\\n\2", expr)
+
     return expr
 
 

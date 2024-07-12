@@ -75,5 +75,7 @@ def compile_uops(
         elif isinstance(uop, NumSubst):
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
-
-    return re.compile("".join(expr)), captures
+    try:
+        return re.compile("".join(expr)), captures
+    except re.error:
+        raise CheckError(f"Malformed regex expression: '{''.join(expr)}'", check)
