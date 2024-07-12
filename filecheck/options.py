@@ -19,6 +19,7 @@ class Options:
     allow_empty: bool = False
     comment_prefixes: list[str] = "COM,RUN"  # type: ignore[reportAssignmentType]
     variables: dict[str, str | int] = field(default_factory=dict)
+    reject_empty_vars: bool = False
 
     extensions: set[Extension] = field(default_factory=set)
 

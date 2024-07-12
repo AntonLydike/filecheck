@@ -2,9 +2,9 @@
 parser for filecheck syntax
 """
 
+import re
 from dataclasses import dataclass, field
 from typing import Iterator, TextIO
-import re
 
 from filecheck.error import ParseError
 from filecheck.ops import CheckOp, Literal, RE, Capture, Subst, NumSubst, UOp, CountOp
@@ -29,7 +29,7 @@ def pattern_for_opts(opts: Options) -> tuple[re.Pattern[str], re.Pattern[str]]:
 
 
 # see https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-string-substitution-blocks
-VAR_CAPTURE_PATTERN = re.compile(r"\[\[(\$?[a-zA-Z_][a-zA-Z0-9_]*):([^\n]+)]]")
+VAR_CAPTURE_PATTERN = re.compile(r"\[\[(\$?[a-zA-Z_][a-zA-Z0-9_]*):([^\n]*)]]")
 
 # see https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-string-substitution-blocks
 VAR_SUBST_PATTERN = re.compile(r"\[\[(\$?[a-zA-Z_][a-zA-Z0-9_]*)]]")
@@ -45,7 +45,6 @@ NUMERIC_CAPTURE_PATTERN = re.compile(
 NUMERIC_SUBST_PATTERN = re.compile(
     r"\[\[#(\$?[a-zA-Z_][a-zA-Z0-9_]*)([a-z0-9 +\-()]*)]]"
 )
-
 
 LINE_SPLIT_RE = split = re.compile(r"(\{\{|\[\[\$?[#a-zA-Z_]|]|})")
 
