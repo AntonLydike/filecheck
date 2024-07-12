@@ -11,3 +11,6 @@ test 123
 // CHECK: test [[VAR:[^ ,]+]]
 test 123, 123
 // CHECK: test [[VAR]], [[VAR]]
+
+test a b
+// CHECK: test {{a|b}} {{b|c}}

@@ -49,7 +49,12 @@ def compile_uops(
 
             # count number of capture groups by counting unescaped brackets
             groups += len(UNESCAPED_BRACKETS.findall(uop.content))
-            expr.append(uop.content)
+            # add brackets sorrounding patterns that contain ORs (fixes #3)
+            if "|" in uop.content:
+                expr.append(f"({uop.content})")
+                groups += 1
+            else:
+                expr.append(uop.content)
         elif isinstance(uop, Capture):
             # record the group we capture in the dictionary
             captures[uop.name] = (groups + 1, uop.value_mapper)
