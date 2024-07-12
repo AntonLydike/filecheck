@@ -47,7 +47,7 @@ NUMERIC_SUBST_PATTERN = re.compile(
 )
 
 
-LINE_SPLIT_RE = split = re.compile(r"(\{\{|\[\[|]]|}})")
+LINE_SPLIT_RE = split = re.compile(r"(\{\{|\[\[\$?[#a-zA-Z_]|]|})")
 
 
 @dataclass
@@ -150,9 +150,10 @@ class Parser(Iterator[CheckOp]):
         offset = len(line) - len(arg)
         while parts:
             part = parts.pop(0)
-            if part == "[[":
+            if part.startswith("[["):
+                brackets = 2
                 # grab parts greedily until we hit a ]]
-                while not part.endswith("]]"):
+                while brackets > 0:
                     if not parts:
                         raise ParseError(
                             "Invalid substitution block, no ]]",
@@ -160,7 +161,10 @@ class Parser(Iterator[CheckOp]):
                             offset,
                             line,
                         )
-                    part += parts.pop(0)
+                    addition = parts.pop(0)
+                    brackets += addition.count("[") - addition.count("\\[")
+                    brackets -= addition.count("]") + addition.count("\\]")
+                    part += addition
                 # check if we are a simple capture pattern [[<name>:<regex>]]
                 if match := VAR_CAPTURE_PATTERN.fullmatch(part):
                     re_expr = posix_to_python_regex(match.group(2))

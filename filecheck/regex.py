@@ -5,15 +5,14 @@ POSIX_REGEXP_PATTERN = re.compile(
     r"\[:(alpha|upper|lower|digit|alnum|xdigit|space|blank|print|punct|graph|word|ascii|cntrl):]"
 )
 POSIX_REGEXP_REPLACEMENTS = {
-    "alpha": "[A-Za-z]",
-    "upper": "[A-Z]",
-    "lower": "[a-z]",
-    "digit": "[0-9]",
-    "alnum": "[A-Za-z0-9]",
-    "xdigit": "[A-Fa-f0-9]",
+    "alpha": "A-Za-z",
+    "upper": "A-Z",
+    "lower": "a-z",
+    "digit": "0-9",
+    "alnum": "A-Za-z0-9",
+    "xdigit": "A-Fa-f0-9",
     "space": r"\s",
-    "blank": r"[ \t]",
-    "word": r"\w+",
+    "blank": r" \t",
 }
 
 NEGATED_SET_WITHOUT_NEWLINES = re.compile(r"([^\\]|^)\[\^((?!\\n))")
