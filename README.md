@@ -46,12 +46,12 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `--allow-empty`
   - [ ] `--color` No color support yet
 - **Base Features:**
-  - [X] Regex patterns (Bugs: [#3](https://github.com/AntonLydike/filecheck/issues/3), [#7](https://github.com/AntonLydike/filecheck/issues/7), [#9](https://github.com/AntonLydike/filecheck/issues/9))
-  - [X] Captures and Capture Matches (Diverges: [#5](https://github.com/AntonLydike/filecheck/issues/5), [#12](https://github.com/AntonLydike/filecheck/issues/12) Bug: [#11](https://github.com/AntonLydike/filecheck/issues/11))
+  - [X] Regex patterns (Bugs: [#7](https://github.com/AntonLydike/filecheck/issues/7), [#9](https://github.com/AntonLydike/filecheck/issues/9))
+  - [X] Captures and Capture Matches (Diverges: [#5](https://github.com/AntonLydike/filecheck/issues/5), Bug: [#11](https://github.com/AntonLydike/filecheck/issues/11))
   - [X] Numeric Captures
   - [ ] Numeric Substitutions (jesus christ, wtf man)
   - [X] Literal matching (`CHECK{LITERAL}`)
-  - [X] Weird regex features (`[:xdigits:]` and friends) (Bug: [#4](https://github.com/AntonLydike/filecheck/issues/4))
+  - [X] Weird regex features (`[:xdigits:]` and friends)
   - [X] Correct(?) handling of matching check lines
 - **Testing:**
   - [X] Base cases
