@@ -24,7 +24,7 @@ print z
 
 // check for posix style regex
 same FF77 FF77
-// CHECK: [[VAR:[:xdigit:]+]] [[VAR]]
+// CHECK: [[VAR:[[:xdigit:]]+]] [[VAR]]
 
 // numeric captures:
 print 0xFF00FF00
@@ -42,3 +42,10 @@ commutativity states that (x * y) = (y * x)
 // CHECK: ([[a:(\w+)(x?)]] * [[b:(\w+)(x?)]]) = ([[b]] * [[a]])
 again: (x * y) = (y * x)
 // CHECK: ([[a]] * [[b]]) = ([[b]] * [[a]])
+
+
+// check that we parse ambigous syntax correctly:
+test %arg1
+// CHECK:       test [[ARG:%[[:alnum:]]+]]
+test [%arg1][0]
+// CHECK-NEXT:  test [[[ARG]]][0]

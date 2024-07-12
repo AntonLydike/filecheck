@@ -4,7 +4,7 @@ sample text with a number: 144
 // CHECK: sample text with a number: {{\d+}}
 
 sample text with another number: 12*12
-// CHECK: sample text with another number: {{([:digit:]{2})}}*{{([:digit:]{2})}}
+// CHECK: sample text with another number: {{([[:digit:]]{2})}}*{{([[:digit:]]{2})}}
 
 // make sure that negative capturing groups don't capture newlines
 test 123
