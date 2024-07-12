@@ -1,7 +1,7 @@
 # filecheck - A Python-native clone of LLVMs FileCheck tool
 
-This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1530 out of
-1645 (93%) of LLVMs MLIR filecheck tests.
+This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1555 out of
+1645 (94.5%) of LLVMs MLIR filecheck tests.
 
 There are some features that are left out for now (e.g.a
 [pseudo-numeric variables](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables) and
@@ -47,7 +47,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [ ] `--color` No color support yet
 - **Base Features:**
   - [X] Regex patterns (Bugs: [#7](https://github.com/AntonLydike/filecheck/issues/7), [#9](https://github.com/AntonLydike/filecheck/issues/9))
-  - [X] Captures and Capture Matches (Diverges: [#5](https://github.com/AntonLydike/filecheck/issues/5), Bug: [#11](https://github.com/AntonLydike/filecheck/issues/11))
+  - [X] Captures and Capture Matches (Bug: [#11](https://github.com/AntonLydike/filecheck/issues/11))
   - [X] Numeric Captures
   - [ ] Numeric Substitutions (jesus christ, wtf man)
   - [X] Literal matching (`CHECK{LITERAL}`)
@@ -112,3 +112,8 @@ can be enabled through the environment variable `FILECHECK_FEATURE_ENABLE=...`. 
 
 - `MLIR_REGEX_CLS`: Add additional special regex matchers to match MLIR/LLVM constructs:
   - `\V` will match any SSA value name
+
+### Reject Empty Matches
+
+We introduce a new flag called `reject-empty-vars` that throws an error when a capture expression captures an empty
+string.

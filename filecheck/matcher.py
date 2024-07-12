@@ -1,10 +1,13 @@
 import re
+import sys
 from dataclasses import dataclass, field
 from typing import Callable
 
 from filecheck.compiler import compile_uops
 from filecheck.error import CheckError, ParseError
 from filecheck.finput import FInput, InputRange
+from filecheck.logging import warn
+from filecheck.colors import ERR, FMT
 from filecheck.ops import CheckOp, CountOp
 from filecheck.options import Options
 from filecheck.parser import Parser
@@ -61,20 +64,27 @@ class Matcher:
         """
         if not self.opts.allow_empty:
             if self.file.content in ("", "\n"):
-                print(f"filecheck error: '{self.opts.readable_input_file()}' is empty.")
+                print(
+                    f"{ERR}filecheck error:{FMT.RESET} '{self.opts.readable_input_file()}' is empty.",
+                    file=sys.stderr,
+                )
                 return 1
 
         try:
             ops = tuple(self.operations)
             if not ops:
                 print(
-                    f"Error: No check strings found with prefix {self.opts.check_prefix}:"
+                    f"{ERR}filecheck error:{FMT.RESET} No check strings found with prefix {self.opts.check_prefix}:",
+                    file=sys.stderr,
                 )
                 return 2
         except ParseError as ex:
-            print(f"{self.opts.match_filename}:{ex.line_no}:{ex.offset} {ex.message}")
-            print(ex.offending_line.rstrip("\n"))
-            print(" " * (ex.offset - 1) + "^")
+            print(
+                f"{self.opts.match_filename}:{ex.line_no}:{ex.offset} {ex.message}",
+                file=sys.stderr,
+            )
+            print(ex.offending_line.rstrip("\n"), file=sys.stderr)
+            print(" " * (ex.offset - 1) + "^", file=sys.stderr)
             return 1
 
         function_table: dict[str, Callable[[CheckOp], None]] = {
@@ -105,15 +115,22 @@ class Matcher:
             self._post_check(CheckOp("NOP", "", -1, []))
         except CheckError as ex:
             print(
-                f"{self.opts.match_filename}:{ex.op.source_line}: error: {ex.message}"
+                f"{self.opts.match_filename}:{ex.op.source_line}: {ERR}error:{FMT.RESET} {ex.message}",
+                file=sys.stderr,
             )
-            self.file.print_line_with_current_pos()
+            print(self.file.print_line_with_current_pos(), file=sys.stderr)
 
             if ex.pattern:
-                print(f"Trying to match with regex '{ex.pattern.pattern}'")
+                print(
+                    f"Trying to match with regex '{ex.pattern.pattern}'",
+                    file=sys.stderr,
+                )
                 if match := self.file.find(ex.pattern):
-                    print("Possible match at:")
-                    self.file.print_line_with_current_pos(match.start(0))
+                    print("Possible match at:", file=sys.stderr)
+                    print(
+                        self.file.print_line_with_current_pos(match.start(0)),
+                        file=sys.stderr,
+                    )
 
             return 1
 
@@ -174,7 +191,7 @@ class Matcher:
                 f"{self.opts.check_prefix}-DAG: Can't find match ('{op.arg}')",
                 op,
             )
-        self.capture_results(match, capture)
+        self.capture_results(match, capture, op)
 
     def check_count(self, op: CheckOp) -> None:
         # invariant preserved by parser
@@ -238,7 +255,7 @@ class Matcher:
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         if match := self.file.match(pattern):
             self.file.move_to(match.end(0))
-            self.capture_results(match, repl)
+            self.capture_results(match, repl, op)
         else:
             raise CheckError(f'Couldn\'t match "{op.arg}".', op, pattern=pattern)
 
@@ -251,7 +268,7 @@ class Matcher:
         pattern, repl = compile_uops(op, self.ctx.live_variables, self.opts)
         if match := self.file.find(pattern, op.name == "SAME"):
             self.file.move_to(match.end())
-            self.capture_results(match, repl)
+            self.capture_results(match, repl, op)
         else:
             raise CheckError(f'Couldn\'t match "{op.arg}".', op, pattern=pattern)
 
@@ -273,10 +290,19 @@ class Matcher:
         self,
         match: re.Match[str],
         capture: dict[str, tuple[int, Callable[[str], int] | Callable[[str], str]]],
+        op: CheckOp,
     ):
         """
         Capture the results of a match into variables for string substitution
         """
         for name, (group, mapper) in capture.items():
-            print(f"assigning variable {name} = {match.group(group)}")
-            self.ctx.live_variables[name] = mapper(match.group(group))
+            str_val = match.group(group)
+            self.ctx.live_variables[name] = mapper(str_val)
+            if not str_val:
+                warn(
+                    "Empty pattern capture",
+                    op=op,
+                    opts=self.opts,
+                )
+                if self.opts.reject_empty_vars:
+                    raise CheckError(f'Empty value captured for variable "{name}"', op)

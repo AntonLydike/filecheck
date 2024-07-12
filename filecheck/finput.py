@@ -190,7 +190,7 @@ class FInput:
             if match is not None:
                 return match
 
-    def print_line_with_current_pos(self, pos_override: int | None = None):
+    def print_line_with_current_pos(self, pos_override: int | None = None) -> str:
         """
         Print the current position in the input file.
         """
@@ -205,9 +205,11 @@ class FInput:
 
         last_newline_at = self.start_of_line(pos)
         char_pos = pos - last_newline_at
-        print(f"Matching at {fname}:{self.line_no}:{char_pos}")
-        print(self.content[last_newline_at + 1 : next_newline_at])
-        print(" " * (char_pos - 1), end="^\n")
+        return (
+            f"Matching at {fname}:{self.line_no}:{char_pos}\n"
+            f"{self.content[last_newline_at + 1 : next_newline_at]}\n"
+            + f"{'^':>{char_pos}}"
+        )
 
     def start_of_line(self, pos: int | None = None) -> int:
         """

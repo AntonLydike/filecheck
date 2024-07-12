@@ -49,3 +49,9 @@ test %arg1
 // CHECK:       test [[ARG:%[[:alnum:]]+]]
 test [%arg1][0]
 // CHECK-NEXT:  test [[[ARG]]][0]
+
+
+// we have to replicate FileChecks behaviour here, and allow empty varaible captures:
+test 123
+// CHECK: test [[VAL:]]
+// CHECK-SAME: [[VAL]]

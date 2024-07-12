@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import Callable, TypeAlias
 
@@ -24,9 +25,11 @@ class CheckOp:
     def check_line_repr(self, prefix: str = "CHECK"):
         return f"{prefix}{self._suffix()}: {self.arg}"
 
-    def print_source_repr(self, opts: Options):
-        print(f"Check rule at {opts.match_filename}:{self.source_line}")
-        print(self.check_line_repr(opts.check_prefix))
+    def source_repr(self, opts: Options) -> str:
+        return (
+            f"Check rule at {opts.match_filename}:{self.source_line}\n"
+            f"{self.check_line_repr(opts.check_prefix)}"
+        )
 
     def _suffix(self):
         suffix = "{LITERAL}" if self.is_literal else ""

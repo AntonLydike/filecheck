@@ -11,7 +11,7 @@ FLAGS:
                                   starting with $ are deleted after each CHECK-LABEL
                                   match.
 --match-full-lines              : Expect every check line to match the whole line.
-
+--reject-empty-vars             : Raise an error when a value captures an empty string.
 
 ARGUMENTS:
 check-file                      : The file from which the check lines are to be read
