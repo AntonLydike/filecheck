@@ -10,6 +10,6 @@ test 123
 // DIAG-NEXT:   CHECK: test [[VAL:]]
 // the error printed:
 // DIAG-NEXT:   tests/filecheck/diagnostics/reject-empty-vars.test:4: error: Empty value captured for variable "VAL"
-// DIAG-NEXT:   Matching at <stdin>:1:6
+// DIAG-NEXT:   Current position at <stdin>:1:6
 // DIAG-NEXT:   test 123
 // DIAG-NEXT: {{     }}^

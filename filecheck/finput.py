@@ -4,6 +4,7 @@ Manages the file input and the position we are at
 
 from __future__ import annotations
 
+import math
 import re
 import sys
 from dataclasses import dataclass, field
@@ -190,25 +191,44 @@ class FInput:
             if match is not None:
                 return match
 
-    def print_line_with_current_pos(self, pos_override: int | None = None) -> str:
+    def print_line(
+        self, pos_override: int | None = None, end_pos: int | None = None
+    ) -> str:
         """
-        Print the current position in the input file.
+        Print a position (defaults to current pos) of the file.
+
+        If end_pos is provided, it will highlight from pos_override to end_pos.
+
+        Otherwise, it will only highlight the position.
         """
         fname = self.fname if self.fname != "-" else "<stdin>"
         pos = self.range.start if pos_override is None else pos_override
         next_newline_at = self.content.find("\n", pos)
+        line = self.line_no
+        # account for line number changes when using pos_override
+        if pos_override:
+            line += math.copysign(
+                pos_override - self.range.start,
+                self.content.count(
+                    "\n",
+                    min(pos_override, self.range.start),
+                    max(pos_override, self.range.start),
+                ),
+            )
 
         # print the next line if we are pointing at a line end.
         if next_newline_at == pos:
             pos += 1
+            line += 1
             next_newline_at = self.content.find("\n", pos)
 
         last_newline_at = self.start_of_line(pos)
         char_pos = pos - last_newline_at
+        num_chars = end_pos - pos if end_pos is not None else 1
+        line_content = self.content[last_newline_at:next_newline_at].rstrip("\n")
         return (
-            f"Matching at {fname}:{self.line_no}:{char_pos}\n"
-            f"{self.content[last_newline_at + 1 : next_newline_at]}\n"
-            + f"{'^':>{char_pos}}"
+            f"{fname}:{line}:{char_pos}\n"
+            f"{line_content}\n" + f"{'^' * num_chars:>{char_pos}}"
         )
 
     def start_of_line(self, pos: int | None = None) -> int:

@@ -1,4 +1,5 @@
 import re
+from dataclasses import dataclass
 from typing import Any
 
 from filecheck.ops import CheckOp
@@ -7,28 +8,31 @@ from filecheck.ops import CheckOp
 class CheckError(Exception):
     message: str
     op: CheckOp
-    pattern: re.Pattern[str] | None
 
-    def __init__(
-        self, msg: str, op: CheckOp, *args: Any, pattern: re.Pattern[str] | None = None
-    ):
+    def __init__(self, msg: str, op: CheckOp, *args: Any):
         super().__init__(*args)
         self.message = msg
         self.op = op
-        self.pattern = pattern
 
 
+@dataclass
+class ErrorOnMatch(Exception):
+    """
+    Signal error on the provided match
+    """
+
+    message: str
+    op: CheckOp
+    match: re.Match[str]
+
+
+@dataclass
 class ParseError(Exception):
+    """
+    Signal an error during parsing
+    """
+
     message: str
     line_no: int
     offset: int
     offending_line: str
-
-    def __init__(
-        self, message: str, line_no: int, offset: int, offending_line: str, *args: Any
-    ):
-        super().__init__(*args)
-        self.message = message
-        self.line_no = line_no
-        self.offset = offset
-        self.offending_line = offending_line

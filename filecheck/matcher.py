@@ -1,14 +1,15 @@
 import re
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Callable
 
 from filecheck.compiler import compile_uops
-from filecheck.error import CheckError, ParseError
+from filecheck.error import CheckError, ParseError, ErrorOnMatch
 from filecheck.finput import FInput, InputRange
 from filecheck.logging import warn
 from filecheck.colors import ERR, FMT
-from filecheck.ops import CheckOp, CountOp
+from filecheck.ops import CheckOp, CountOp, Literal, Subst, UOp, RE, Capture
 from filecheck.options import Options
 from filecheck.parser import Parser
 from filecheck.preprocess import Preprocessor
@@ -123,20 +124,25 @@ class Matcher:
                 f"{self.opts.match_filename}:{ex.op.source_line}: {ERR}error:{FMT.RESET} {ex.message}",
                 file=sys.stderr,
             )
-            print(self.file.print_line_with_current_pos(), file=sys.stderr)
+            print("Current position at " + self.file.print_line(), file=sys.stderr)
 
-            if ex.pattern:
-                print(
-                    f"Trying to match with regex '{ex.pattern.pattern}'",
-                    file=sys.stderr,
-                )
-                if match := self.file.find(ex.pattern):
-                    print("Possible match at:", file=sys.stderr)
-                    print(
-                        self.file.print_line_with_current_pos(match.start(0)),
-                        file=sys.stderr,
-                    )
+            # try to look for a shorter match, and print that if possible
+            prefix_match = self.find_prefix_match_for(ex.op)
+            if prefix_match is not None:
+                print("Possible intended match at:", file=sys.stderr)
+                print(self.file.print_line(prefix_match.start(0)), file=sys.stderr)
 
+            return 1
+        except ErrorOnMatch as ex:
+            print(
+                f"{self.opts.match_filename}:{ex.op.source_line}: {ERR}error:{FMT.RESET} {ex.message}",
+                file=sys.stderr,
+            )
+            print("Matching at: ", end="", file=sys.stderr)
+            print(
+                self.file.print_line(ex.match.start(0), ex.match.end(0)),
+                file=sys.stderr,
+            )
             return 1
 
         return 0
@@ -209,10 +215,11 @@ class Matcher:
         Check that op doesn't match between start and current position.
         """
         pattern, _ = compile_uops(op, self.ctx.live_variables, self.opts)
-        if self.file.find_between(pattern, search_range):
-            raise CheckError(
+        if match := self.file.find_between(pattern, search_range):
+            raise ErrorOnMatch(
                 f"{op.check_name}: excluded string found in input ('{op.arg}')",
                 op,
+                match,
             )
 
     def enqueue_not(self, op: CheckOp):
@@ -262,7 +269,7 @@ class Matcher:
             self.file.move_to(match.end(0))
             self.capture_results(match, repl, op)
         else:
-            raise CheckError(f'Couldn\'t match "{op.arg}".', op, pattern=pattern)
+            raise CheckError(f'Couldn\'t match "{op.arg}".', op)
 
     def match_eventually(self, op: CheckOp):
         """
@@ -275,7 +282,7 @@ class Matcher:
             self.file.move_to(match.end())
             self.capture_results(match, repl, op)
         else:
-            raise CheckError(f'Couldn\'t match "{op.arg}".', op, pattern=pattern)
+            raise CheckError(f'Couldn\'t match "{op.arg}".', op)
 
     def fail_op(self, op: CheckOp):
         """
@@ -311,3 +318,54 @@ class Matcher:
                 )
                 if self.opts.reject_empty_vars:
                     raise CheckError(f'Empty value captured for variable "{name}"', op)
+
+    def find_prefix_match_for(self, op: CheckOp) -> re.Match[str] | None:
+        """
+        Tries to construct a smaller pattern that matches a prefix of op.
+
+        This can help in debugging a potential match.
+        """
+        prefix = op.uops[:-1]
+
+        # as long as we have at least ~5 characters to match on, try them
+        while self._approximate_uop_length(prefix) >= 5:
+            faux_op = CheckOp(
+                op.prefix,
+                op.name,
+                op.arg,
+                op.source_line,
+                prefix,
+                is_literal=op.is_literal,
+            )
+            prefix_pattern, _ = compile_uops(
+                faux_op, self.ctx.live_variables, self.opts
+            )
+            if match := self.file.find(prefix_pattern):
+                return match
+            else:
+                last = prefix.pop()
+                # if it's a literal and more than 5 characters long, try to shorten it.
+                if isinstance(last, Literal) and len(last.content) > 5:
+                    prefix.append(Literal(last.content[: len(last.content) // 2]))
+                # otherwise retry without that uop
+
+        return None
+
+    def _approximate_uop_length(self, uops: Sequence[UOp]) -> int:
+        """
+        Calculate a rough approximation of the content length of a series of uops
+        """
+        count = 0
+        for op in uops:
+            match op:
+                case Subst(variable):
+                    count += len(str(self.ctx.live_variables.get(variable, "")))
+                case Literal(content):
+                    count += len(content)
+                case RE(content):
+                    count += len(content)
+                case Capture(pattern):
+                    count += len(pattern)
+                case _:
+                    continue
+        return count
