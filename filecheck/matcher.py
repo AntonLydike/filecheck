@@ -73,8 +73,13 @@ class Matcher:
         try:
             ops = tuple(self.operations)
             if not ops:
+                # fix plural case for multiple prefixes
+                if len(self.opts.check_prefixes) == 1:
+                    pref = f"prefix {self.opts.check_prefixes[0]}"
+                else:
+                    pref = f"prefixes {', '.join(self.opts.check_prefixes)}"
                 print(
-                    f"{ERR}filecheck error:{FMT.RESET} No check strings found with prefix {self.opts.check_prefix}:",
+                    f"{ERR}filecheck error:{FMT.RESET} No check strings found with {pref}:",
                     file=sys.stderr,
                 )
                 return 2
@@ -112,7 +117,7 @@ class Matcher:
             # run the post-check one last time to make sure all NOT checks are taken
             # care of.
             self.file.range.start = len(self.file.content) - 1
-            self._post_check(CheckOp("NOP", "", -1, []))
+            self._post_check(CheckOp("SYNTH", "NOP", "", -1, []))
         except CheckError as ex:
             print(
                 f"{self.opts.match_filename}:{ex.op.source_line}: {ERR}error:{FMT.RESET} {ex.message}",
@@ -188,7 +193,7 @@ class Matcher:
         match = self.file.match_and_add_hole(pattern)
         if match is None:
             raise CheckError(
-                f"{self.opts.check_prefix}-DAG: Can't find match ('{op.arg}')",
+                f"{op.check_name}: Can't find match ('{op.arg}')",
                 op,
             )
         self.capture_results(match, capture, op)
@@ -206,7 +211,7 @@ class Matcher:
         pattern, _ = compile_uops(op, self.ctx.live_variables, self.opts)
         if self.file.find_between(pattern, search_range):
             raise CheckError(
-                f"{self.opts.check_prefix}-NOT: excluded string found in input ('{op.arg}')",
+                f"{op.check_name}: excluded string found in input ('{op.arg}')",
                 op,
             )
 
@@ -240,7 +245,7 @@ class Matcher:
             self.file.skip_to_end_of_line()
         if not self.file.starts_with("\n\n"):
             raise CheckError(
-                f"{self.opts.check_prefix}-EMPTY: is not on the line after the previous match",
+                f"{op.check_name}: is not on the line after the previous match",
                 op,
             )
         # consume single newline

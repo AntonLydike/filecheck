@@ -17,15 +17,11 @@ from filecheck.regex import (
 
 
 def pattern_for_opts(opts: Options) -> tuple[re.Pattern[str], re.Pattern[str]]:
+    prefixes = f"({'|'.join(map(re.escape, opts.check_prefixes))})"
     return re.compile(
-        re.escape(opts.check_prefix)
+        prefixes
         + r"(-(DAG|COUNT-\d+|NOT|EMPTY|NEXT|SAME|LABEL))?(\{LITERAL})?:\s?([^\n]*)\n?"
-    ), re.compile(
-        "("
-        + "|".join(map(re.escape, opts.comment_prefixes))
-        + ").*"
-        + re.escape(opts.check_prefix)
-    )
+    ), re.compile(f"({'|'.join(map(re.escape, opts.comment_prefixes))}).*{prefixes}")
 
 
 # see https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-string-substitution-blocks
@@ -90,9 +86,10 @@ class Parser(Iterator[CheckOp]):
             # no check line = skip
             if match is None:
                 continue
-            kind = match.group(2)
-            literal = match.group(3)
-            arg = match.group(4)
+            prefix = match.group(1)
+            kind = match.group(3)
+            literal = match.group(4)
+            arg = match.group(5)
             if kind is None:
                 kind = "CHECK"
             if arg is None:
@@ -103,7 +100,7 @@ class Parser(Iterator[CheckOp]):
                     raise ParseError(
                         f"found empty check string with prefix '{kind}:'",
                         self.line_no,
-                        match.start(3),
+                        match.start(4),
                         line,
                     )
             if not self.opts.strict_whitespace:
@@ -121,12 +118,14 @@ class Parser(Iterator[CheckOp]):
                 count = int(kind[6:])
                 if count == 0:
                     raise ParseError(
-                        f"invalid count in -COUNT specification on prefix '{opts.check_prefix}' (count can't be 0)",
+                        f"invalid count in -COUNT specification on prefix '{prefix}' "
+                        f"(count can't be 0)",
                         self.line_no,
                         match.end(2),
                         line,
                     )
                 return CountOp(
+                    prefix,
                     "COUNT",
                     arg,
                     self.line_no,
@@ -135,7 +134,12 @@ class Parser(Iterator[CheckOp]):
                     count=count,
                 )
             return CheckOp(
-                kind, arg, self.line_no, uops, is_literal=literal is not None
+                prefix,
+                kind,
+                arg,
+                self.line_no,
+                uops,
+                is_literal=literal is not None,
             )
 
     def parse_args(self, arg: str, line: str) -> list[UOp]:
