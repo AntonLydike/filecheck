@@ -29,9 +29,7 @@ class Preprocessor:
         pattern, _ = compile_uops(op, dict(), self.opts)
         match = self.input.find_between(pattern, self.range)
         if not match:
-            raise CheckError(
-                f"{self.opts.check_prefix}-LABEL: Could not find label in input", op
-            )
+            raise CheckError(f"{op.check_name}: Could not find label in input", op)
 
         self.range = self.range.split_at(match)
         self.input.ranges.append(self.range)

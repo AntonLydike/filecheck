@@ -16,26 +16,31 @@ class CheckOp:
     Represents a concrete check instruction (e.g. CHECK-NEXT)
     """
 
+    prefix: str
     name: str
     arg: str
     source_line: int
     uops: list[UOp]
     is_literal: bool = field(default=False, kw_only=True)
 
-    def check_line_repr(self, prefix: str = "CHECK"):
-        return f"{prefix}{self._suffix()}: {self.arg}"
+    def check_line_repr(self):
+        return f"{self.check_name}: {self.arg}"
 
     def source_repr(self, opts: Options) -> str:
         return (
             f"Check rule at {opts.match_filename}:{self.source_line}\n"
-            f"{self.check_line_repr(opts.check_prefix)}"
+            f"{self.check_line_repr()}"
         )
 
     def _suffix(self):
         suffix = "{LITERAL}" if self.is_literal else ""
         if self.name == "CHECK":
             return suffix
-        return "-" + self.name + suffix
+        return f"-{self.name}{suffix}"
+
+    @property
+    def check_name(self):
+        return f"{self.prefix}{self._suffix()}"
 
 
 @dataclass(slots=True)
@@ -48,7 +53,7 @@ class CountOp(CheckOp):
 
     def _suffix(self):
         suffix = "{LITERAL}" if self.is_literal else ""
-        return f"-COUNT{self.count}" + suffix
+        return f"-COUNT{self.count}{suffix}"
 
 
 @dataclass(frozen=True, slots=True)

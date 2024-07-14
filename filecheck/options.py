@@ -12,14 +12,14 @@ class Extension(Enum):
 class Options:
     match_filename: str
     input_file: str = "-"
-    check_prefix: str = "CHECK"
+    check_prefixes: list[str] = "CHECK"  # type: ignore[reportAssignmentType]
+    comment_prefixes: list[str] = "COM,RUN"  # type: ignore[reportAssignmentType]
     strict_whitespace: bool = False
     enable_var_scope: bool = False
     match_full_lines: bool = False
     allow_empty: bool = False
-    comment_prefixes: list[str] = "COM,RUN"  # type: ignore[reportAssignmentType]
-    variables: dict[str, str | int] = field(default_factory=dict)
     reject_empty_vars: bool = False
+    variables: dict[str, str | int] = field(default_factory=dict)
 
     extensions: set[Extension] = field(default_factory=set)
 
@@ -27,6 +27,8 @@ class Options:
         # make sure we split the comment prefixes
         if isinstance(self.comment_prefixes, str):
             self.comment_prefixes = self.comment_prefixes.split(",")
+        if isinstance(self.check_prefixes, str):
+            self.check_prefixes = self.check_prefixes.split(",")
         extensions: set[Extension] = set()
         for ext in self.extensions:
             if isinstance(ext, str):
@@ -51,6 +53,11 @@ class Options:
 def parse_argv_options(argv: list[str]) -> Options:
     # pop the name off of argv
     _ = argv.pop(0)
+
+    # create a set of valid fields
+    valid_fields = set(Options.__dataclass_fields__)
+    # add check-prefix as another valid field (merged with check-prefixes)
+    valid_fields.add("check_prefix")
 
     # final options to return
     opts: dict[str, str | bool] = {}
@@ -80,17 +87,27 @@ def parse_argv_options(argv: list[str]) -> Options:
             arg = arg[1:].replace("-", "_")
         else:
             continue
-        if arg not in Options.__dataclass_fields__:
+        if arg not in valid_fields:
             continue
 
         remove.add(i)
-        if Options.__dataclass_fields__[arg].type == bool:
+        if (f := Options.__dataclass_fields__.get(arg, None)) and f.type == bool:
             opts[arg] = True
         else:
             if i == len(argv) - 1:
                 raise RuntimeError("Out of range arguments")
-            opts[arg] = argv[i + 1]
+            # make sure to append check and comment prefixes if flag is used multiple times
+            if arg in ("check_prefix", "comment_prefixes") and arg in opts:
+                opts[arg] += "," + argv[i + 1]
+            else:
+                opts[arg] = argv[i + 1]
             remove.add(i + 1)
+
+    if "check_prefix" in opts:
+        prefixes = opts.pop("check_prefix")
+        if "check_prefixes" in opts:
+            prefixes += "," + opts.pop("check_prefixes")
+        opts["check_prefixes"] = prefixes
 
     for idx in sorted(remove, reverse=True):
         argv.pop(idx)
@@ -99,6 +116,8 @@ def parse_argv_options(argv: list[str]) -> Options:
         raise RuntimeError(
             f"Unconsumed arguments: {argv}, expected one remaining arg, the match-filename."
         )
+    if len(argv) != 1:
+        raise RuntimeError(f"Missing argument: check-file")
 
     opts["match_filename"] = argv[0]
 
