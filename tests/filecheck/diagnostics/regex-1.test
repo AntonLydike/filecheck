@@ -1,4 +1,4 @@
-// RUN: strip-comments.sh %s | exfail filecheck %s --allow-empty | filecheck %s --check-prefix DIAG
+// RUN: strip-comments.sh %s | exfail filecheck %s --allow-empty --comment-prefixes=RUN,COM,DIAG | filecheck %s --check-prefix DIAG
 
 // CHECK: {{unclosed
 // DIAG:      tests/filecheck/diagnostics/regex-1.test:3:11 Invalid regex block, no }}

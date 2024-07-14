@@ -10,3 +10,7 @@ test 456
 // CHECK2-SAME: 456
 // CHECK-NOT: bad
 // CHECK2-NOT: bad2
+
+test 1234
+// CHECK2: test
+// CHECK-SAME: 1234

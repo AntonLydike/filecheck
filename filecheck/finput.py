@@ -225,7 +225,7 @@ class FInput:
         last_newline_at = self.start_of_line(pos)
         char_pos = pos - last_newline_at
         num_chars = end_pos - pos if end_pos is not None else 1
-        line_content = self.content[last_newline_at:next_newline_at].rstrip("\n")
+        line_content = self.content[last_newline_at:next_newline_at].strip("\n")
         return (
             f"{fname}:{line}:{char_pos}\n"
             f"{line_content}\n" + f"{'^' * num_chars:>{char_pos}}"

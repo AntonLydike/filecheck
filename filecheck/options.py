@@ -100,7 +100,7 @@ def parse_argv_options(argv: list[str]) -> Options:
             if arg in ("check_prefix", "comment_prefixes") and arg in opts:
                 existing_opts = opts[arg]
                 assert isinstance(existing_opts, str)
-                existing_opts += "," + argv[i + 1]
+                opts[arg] = existing_opts + "," + argv[i + 1]
             else:
                 opts[arg] = argv[i + 1]
             remove.add(i + 1)

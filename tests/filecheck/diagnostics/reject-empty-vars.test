@@ -1,15 +1,15 @@
-// RUN:  strip-comments.sh %s | exfail filecheck %s --reject-empty-vars | filecheck %s --check-prefix DIAG
+// RUN:  strip-comments.sh %s | exfail filecheck %s --reject-empty-vars --comment-prefixes=RUN,COM,DIAG | filecheck %s --check-prefix DIAG
 
 test 123
 // CHECK: test [[VAL:]]
 // CHECK-SAME: [[VAL]]
 
 // the warning printed:
-// DIAG:        Warning: Empty pattern capture
-// DIAG-NEXT:   Check rule at {{.*}}tests/filecheck/diagnostics/reject-empty-vars.test:4
-// DIAG-NEXT:   CHECK: test [[VAL:]]
+// DIAG:                Warning: Empty pattern capture
+// DIAG-NEXT:           Check rule at {{.*}}tests/filecheck/diagnostics/reject-empty-vars.test:4
+// DIAG-NEXT{LITERAL}:  CHECK: test [[VAL:]]
 // the error printed:
-// DIAG-NEXT:   tests/filecheck/diagnostics/reject-empty-vars.test:4: error: Empty value captured for variable "VAL"
-// DIAG-NEXT:   Current position at <stdin>:1:6
-// DIAG-NEXT:   test 123
-// DIAG-NEXT: {{     }}^
+// DIAG-NEXT:           tests/filecheck/diagnostics/reject-empty-vars.test:4: error: Empty value captured for variable "VAL"
+// DIAG-NEXT:           Current position at <stdin>:1:6
+// DIAG-NEXT:           test 123
+// DIAG-NEXT:       {{     }}^
