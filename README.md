@@ -3,7 +3,7 @@
 **Note:** This project is the successor of [mull-project/FileCheck.py](https://github.com/mull-project/FileCheck.py).
 
 This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1576 out of
-1645 (95.8%) of LLVMs MLIR filecheck tests.
+1645 (95.8%) of LLVMs MLIR filecheck tests. We are tracking all 69 remaining test failures in GitHub issues.
 
 There are some features that are left out for now (e.g.a
 [pseudo-numeric variables](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables) and
@@ -36,8 +36,8 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `--match-full-lines`
   - [X] `--strict-whitespace` (Bug: [#6](https://github.com/AntonLydike/filecheck/issues/6))
   - [ ] `--ignore-case`
-  - [ ] `--implicit-check-not`
-  - [ ] `--dump-input`
+  - [ ] `--implicit-check-not` (Tracked: [#20](https://github.com/AntonLydike/filecheck/issues/20))
+  - [ ] `--dump-input` (Tracked: [#19](https://github.com/AntonLydike/filecheck/issues/19))
   - [ ] `--dump-input-context`
   - [ ] `--dump-input-filter`
   - [X] `--enable-var-scope`
@@ -46,17 +46,17 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `-version`
   - [ ] `-v`
   - [ ] `-vv`
-  - [ ] `--allow-deprecated-dag-overlap` Not sure what this means yet.
+  - [ ] `--allow-deprecated-dag-overlap`
   - [X] `--allow-empty`
-  - [ ] `--color` No color support yet
+  - [ ] `--color` Colored output is supported and automatically detected. No support for the flag.
 - **Base Features:**
   - [X] Regex patterns (Bugs: [#7](https://github.com/AntonLydike/filecheck/issues/7), [#9](https://github.com/AntonLydike/filecheck/issues/9))
   - [X] Captures and Capture Matches (Bug: [#11](https://github.com/AntonLydike/filecheck/issues/11))
   - [X] Numeric Captures
-  - [ ] Numeric Substitutions (jesus christ, wtf man)
+  - [ ] Numeric Substitutions (jesus christ, wtf man) (Tracked: [#21](https://github.com/AntonLydike/filecheck/issues/21))
   - [X] Literal matching (`CHECK{LITERAL}`)
   - [X] Weird regex features (`[:xdigits:]` and friends)
-  - [X] Correct(?) handling of matching check lines
+  - [X] Correct(?) handling of matching check lines (Bug: [#22](https://github.com/AntonLydike/filecheck/issues/22))
 - **Testing:**
   - [X] Base cases
   - [X] Negative tests
@@ -84,14 +84,14 @@ We want to be as close as possible to the original FileCheck, and document our d
 
 If you encounter a difference that is not documented here, feel free to file a bug report.
 
-### Better Regexes
+### Better Regexes:
 We use pythons regex library, which is a flavour of a Perl compatible regular expression (PCRE), instead of FileChecks
-POSIX regex falvour.
+POSIX regex flavour.
 
 **Example:**
 ```
 // LLVM filecheck:
-// CHECK: %{{[:alnum:]+}}, %{{[:digit:]+}}
+// CHECK: %{{[[:alnum:]]+}}, %{{[[:digit:]]+}}
 
 // our fileheck:
 // CHECK: %{{[a-zA-Z0-9]+}}, %{{\d+}}
@@ -99,14 +99,16 @@ POSIX regex falvour.
 
 Some effort is made to translate character classes from POSIX to PCRE, although it might be wrong in edge cases.
 
-### Relaxed Matchings:
+### Relaxed Matching:
 
 We relax some of the matching rules, like:
 
 - Allow a file to start with `CHECK-NEXT`
 
 
-### No Numerical Substitution
+### No Numerical Substitution:
+
+This is used in 2 out of 1645 tests in our benchmark (upstream MLIR tests).
 
 While our filecheck supports [numeric capture](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)
 (`[[#%.3x,VAR:]]` will capture a three-digit hex number), we don't support arithmetic expressions on these captured
@@ -120,7 +122,7 @@ can be enabled through the environment variable `FILECHECK_FEATURE_ENABLE=...`. 
 - `MLIR_REGEX_CLS`: Add additional special regex matchers to match MLIR/LLVM constructs:
   - `\V` will match any SSA value name
 
-### Reject Empty Matches
+### Reject Empty Captures:
 
 We introduce a new flag called `reject-empty-vars` that throws an error when a capture expression captures an empty
 string.
