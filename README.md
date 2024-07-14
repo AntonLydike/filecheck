@@ -1,5 +1,7 @@
 # filecheck - A Python-native clone of LLVMs FileCheck tool
 
+**Note:** This project is the successor of [mull-project/FileCheck.py](https://github.com/mull-project/FileCheck.py).
+
 This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1576 out of
 1645 (95.8%) of LLVMs MLIR filecheck tests.
 
@@ -57,15 +59,18 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] Correct(?) handling of matching check lines
 - **Testing:**
   - [X] Base cases
-  - [ ] Negative tests
+  - [X] Negative tests
   - [ ] Error messages (started)
   - [ ] Lots of edge cases
   - [ ] MLIR/xDSL integration tests
 - **UX:**
-  - Good error messages: I have some error messages, but could be a lot better
+  - Good error messages: Error messages are on an okay level, not great, but not terrible either.
     - [X] Parse errors
-    - [ ] Matching errors
-    - [ ] Malformed regexes
+    - [X] Matching errors
+    - [X] Print possible intended matches (could be better still)
+    - [X] Malformed regexes
+    - [ ] Wrong/unkown command line arguments
+    - [ ] Print variables and their origin in error messages
 - **Infrastructure:**
   - [X] Formatting: black
   - [X] Pyright
