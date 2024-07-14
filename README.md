@@ -1,7 +1,7 @@
 # filecheck - A Python-native clone of LLVMs FileCheck tool
 
-This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1555 out of
-1645 (94.5%) of LLVMs MLIR filecheck tests.
+This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1576 out of
+1645 (95.8%) of LLVMs MLIR filecheck tests.
 
 There are some features that are left out for now (e.g.a
 [pseudo-numeric variables](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables) and
@@ -25,7 +25,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `CHECK-COUNT`
 - **Flags:**
   - [X] `--check-prefix`
-  - [ ] `--check-prefixes` (Tracking: [#13](https://github.com/AntonLydike/filecheck/issues/13))
+  - [X] `--check-prefixes`
   - [X] `--comment-prefixes`
   - [ ] `--allow-unused-prefixes`
   - [X] `--input-file`

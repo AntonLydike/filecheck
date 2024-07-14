@@ -98,15 +98,20 @@ def parse_argv_options(argv: list[str]) -> Options:
                 raise RuntimeError("Out of range arguments")
             # make sure to append check and comment prefixes if flag is used multiple times
             if arg in ("check_prefix", "comment_prefixes") and arg in opts:
-                opts[arg] += "," + argv[i + 1]
+                existing_opts = opts[arg]
+                assert isinstance(existing_opts, str)
+                existing_opts += "," + argv[i + 1]
             else:
                 opts[arg] = argv[i + 1]
             remove.add(i + 1)
 
     if "check_prefix" in opts:
         prefixes = opts.pop("check_prefix")
+        assert isinstance(prefixes, str)
         if "check_prefixes" in opts:
-            prefixes += "," + opts.pop("check_prefixes")
+            more_prefixes = opts.pop("check_prefixes")
+            assert isinstance(more_prefixes, str)
+            prefixes += "," + more_prefixes
         opts["check_prefixes"] = prefixes
 
     for idx in sorted(remove, reverse=True):
