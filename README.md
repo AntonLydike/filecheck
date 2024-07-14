@@ -11,6 +11,8 @@ parts of [numeric substitution](https://llvm.org/docs/CommandGuide/FileCheck.htm
 The codebase is fully type checked by `pyright`, and automatically formatted using `black`. We aim to have tests
 covering everything from normal matching down to error messages.
 
+Install by running `pip install filecheck`.
+
 ## Features:
 Here's an overview of all FileCheck features and their implementation status.
 
@@ -39,7 +41,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `--enable-var-scope`
   - [X] `-D<VAR=VALUE>`
   - [ ] `-D#<FMT>,<NUMVAR>=<NUMERIC EXPRESSION>`
-  - [ ] `-version`
+  - [X] `-version`
   - [ ] `-v`
   - [ ] `-vv`
   - [ ] `--allow-deprecated-dag-overlap` Not sure what this means yet.

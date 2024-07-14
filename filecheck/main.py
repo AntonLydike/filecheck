@@ -1,4 +1,5 @@
 import sys
+import importlib.metadata
 
 from filecheck.help import HELP_TEXT
 from filecheck.matcher import Matcher
@@ -11,6 +12,10 @@ def main(argv: list[str] | None = None):
 
     if "--help" in argv or len(argv) < 2:
         print(HELP_TEXT)
+        return
+
+    if "--version" in argv or "-version" in argv:
+        print(f"filecheck version {importlib.metadata.version('filecheck')}")
         return
 
     opts = parse_argv_options(argv)
