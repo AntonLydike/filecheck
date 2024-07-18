@@ -1,0 +1,5 @@
+// RUN: strip-comments.sh %s | filecheck %s
+test
+// CHECK: test
+// verify that CHECK-EMPTY can be used to check that nothing is left in the current range (i.e. before the next label)
+// CHECK-EMPTY:
