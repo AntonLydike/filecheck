@@ -250,7 +250,7 @@ class Matcher:
         # check immediately
         if not self.opts.match_full_lines:
             self.file.skip_to_end_of_line()
-        if not self.file.starts_with("\n\n"):
+        if not (self.file.starts_with("\n\n") or self.file.is_end_of_file()):
             raise CheckError(
                 f"{op.check_name}: is not on the line after the previous match",
                 op,

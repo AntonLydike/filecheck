@@ -12,6 +12,8 @@ from typing import Iterable
 
 from filecheck.options import Options
 
+ANY_NEWLINES = re.compile(r"\n*")
+
 
 @dataclass(slots=True)
 class InputRange:
@@ -259,6 +261,12 @@ class FInput:
         if self.range.start == len(self.content) - 1:
             return True
         return False
+
+    def is_end_of_file(self) -> bool:
+        """
+        Check if only whitespace characters are left in the file
+        """
+        return ANY_NEWLINES.fullmatch(self.content, self.range.start) is not None
 
     def starts_with(self, expr: str) -> bool:
         return self.content.startswith(expr, self.range.start)
