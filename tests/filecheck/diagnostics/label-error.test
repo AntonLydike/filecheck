@@ -1,0 +1,16 @@
+// RUN: strip-comments.sh %s | exfail filecheck %s --comment-prefixes=RUN,COM,DIAG | filecheck %s --check-prefix=DIAG
+
+hello:
+    a
+    b
+
+world:
+    c
+    d
+
+// CHECK-LABEL: hello
+// CHECK-NOT: d
+// CHECK-LABEL: woupsrld
+// CHECK: d
+
+// DIAG: Could not find label 'woupsrld' in input
