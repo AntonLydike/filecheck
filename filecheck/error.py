@@ -1,8 +1,10 @@
-import re
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from filecheck.ops import CheckOp
+
+if TYPE_CHECKING:
+    from filecheck.compiler import MatchT
 
 
 class CheckError(Exception):
@@ -23,7 +25,7 @@ class ErrorOnMatch(Exception):
 
     message: str
     op: CheckOp
-    match: re.Match[str]
+    match: "MatchT"
 
 
 @dataclass

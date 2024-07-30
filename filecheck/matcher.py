@@ -1,10 +1,9 @@
-import re
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Callable
 
-from filecheck.compiler import compile_uops
+from filecheck.compiler import compile_uops, MatchT
 from filecheck.error import CheckError, ParseError, ErrorOnMatch
 from filecheck.finput import FInput, InputRange
 from filecheck.logging import warn
@@ -313,7 +312,7 @@ class Matcher:
 
     def capture_results(
         self,
-        match: re.Match[str],
+        match: MatchT,
         capture: dict[str, tuple[int, Callable[[str], int] | Callable[[str], str]]],
         op: CheckOp,
     ):
@@ -332,7 +331,7 @@ class Matcher:
                 if self.opts.reject_empty_vars:
                     raise CheckError(f'Empty value captured for variable "{name}"', op)
 
-    def find_prefix_match_for(self, op: CheckOp) -> re.Match[str] | None:
+    def find_prefix_match_for(self, op: CheckOp) -> MatchT | None:
         """
         Tries to construct a smaller pattern that matches a prefix of op.
 
