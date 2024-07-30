@@ -1,0 +1,5 @@
+// RUN: echo -e "1\r\n2\r\n\r\n3" | filecheck %s
+CHECK: 1
+CHECK-NEXT: 2
+CHECK-EMPTY:
+CHECK-NEXT: 3

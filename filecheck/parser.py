@@ -19,7 +19,7 @@ from filecheck.regex import (
 def pattern_for_opts(opts: Options) -> tuple[re.Pattern[str], re.Pattern[str]]:
     prefixes = f"({'|'.join(map(re.escape, opts.check_prefixes))})"
     return re.compile(
-        r"(^|[^a-zA-Z])"
+        r"(^|[^a-zA-Z-_])"
         + prefixes
         + r"(-(DAG|COUNT-\d+|NOT|EMPTY|NEXT|SAME|LABEL))?(\{LITERAL})?:\s?([^\n]*)\n?"
     ), re.compile(f"({'|'.join(map(re.escape, opts.comment_prefixes))}).*{prefixes}")

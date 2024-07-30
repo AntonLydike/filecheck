@@ -126,6 +126,10 @@ class FInput:
     ranges: list[InputRange] = field(default_factory=list)
 
     @staticmethod
+    def canonicalize_line_ends(text: str) -> str:
+        return text.replace("\r\n", "\n")
+
+    @staticmethod
     def from_opts(opts: Options) -> FInput:
         """
         Create a FInput object from options objects
@@ -135,7 +139,7 @@ class FInput:
             f = sys.stdin
         else:
             f = open(opts.input_file, "r")
-        return FInput(opts.input_file, f.read())
+        return FInput(opts.input_file, FInput.canonicalize_line_ends(f.read()))
 
     def advance_by(self, dist: int):
         """
