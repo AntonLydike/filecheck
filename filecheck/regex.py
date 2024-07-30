@@ -1,4 +1,6 @@
 import re
+import sys
+from dataclasses import dataclass
 from typing import Callable
 
 POSIX_REGEXP_PATTERN = re.compile(
@@ -80,3 +82,99 @@ def pattern_from_num_subst_spec(
 
 def hex_int(v: str):
     return int(v, base=16)
+
+
+class LiteralMatch:
+    """
+    Replaces re.Match class for literal matches
+    """
+
+    _start: int
+    _end: int
+    _content: str
+
+    def __init__(self, start: int, content: str):
+        self._start = start
+        self._end = start + len(content)
+        self._content = content
+
+    def start(self, group: int = 0):
+        assert group == 0
+        return self._start
+
+    def end(self, group: int = 0):
+        assert group == 0
+        return self._end
+
+    def group(self, group: int):
+        assert group == 0
+        return self._content
+
+
+@dataclass
+class LiteralMatcher:
+    """
+    Class meant to emulate re.Pattern class for strictly literal patterns
+    """
+
+    pattern: str
+    strict_whitespace: bool
+    match_on_next_line: bool
+
+    def search(
+        self, string: str, pos: int = 0, endpos: int = sys.maxsize
+    ) -> LiteralMatch | None:
+        """
+        Scan through string looking for the first location where this regular expression produces a match, and return a
+        corresponding Match. Return None if no position in the string matches the pattern; note that this is different
+        from finding a zero-length match at some point in the string.
+        """
+        start = string.find(self.pattern, pos, endpos)
+        if start != -1:
+            return LiteralMatch(start, self.pattern)
+
+        if self.strict_whitespace:
+            return None
+
+        # match whitespace insensitive
+        parts = re.split(r"\s+", self.pattern)
+
+        while pos < endpos:
+            candidate_start = string.find(parts[0], pos, endpos)
+            if candidate_start == -1:
+                return None
+            match_pos = candidate_start + len(parts[0])
+            did_match = False
+            for part in parts[1:]:
+                # eat space
+                while string[match_pos].isspace():
+                    match_pos += 1
+                if string.startswith(part, match_pos, endpos):
+                    match_pos += len(part)
+                else:
+                    break
+            else:
+                # set did_match to true, if loop didn't break
+                did_match = True
+            if did_match:
+                return LiteralMatch(candidate_start, string[candidate_start:match_pos])
+            pos = candidate_start + 1
+
+    def match(
+        self, string: str, pos: int = 0, endpos: int = sys.maxsize
+    ) -> LiteralMatch | None:
+        """
+        If zero or more characters at the beginning of string match this regular expression, return a corresponding
+        Match. Return None if the string does not match the pattern; note that this is different from a zero-length
+        match.
+
+        `re.match` is only used by `CHECK-NEXT`, which will always set the `match_on_next_line` flag, so we can safely
+        skip implementing the general case here (which is very similar to search otherwise).
+        """
+        assert self.match_on_next_line
+        if string[pos] == "\n":
+            pos += 1
+        new_endpos = string.find("\n", pos, endpos)
+        if new_endpos == -1:
+            new_endpos = endpos
+        return self.search(string, pos, new_endpos)

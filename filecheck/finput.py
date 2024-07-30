@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from typing import Iterable
 
 from filecheck.colors import FMT
+from filecheck.compiler import PatternT, MatchT
 from filecheck.options import Options
 
 ANY_NEWLINES = re.compile(r"\n*")
@@ -27,7 +28,7 @@ class InputRange:
     def restrict_end(self, new_end: int):
         return InputRange(self.start, new_end)
 
-    def split_at(self, match: re.Match[str]):
+    def split_at(self, match: MatchT):
         """
         Split this range at match by truncating the end of this range to the start of
         the match, and returning a new range starting at the end of the match, until
@@ -159,7 +160,7 @@ class FInput:
         """
         self.advance_by(new_pos - self.range.start)
 
-    def match(self, pattern: re.Pattern[str]) -> re.Match[str] | None:
+    def match(self, pattern: PatternT) -> MatchT | None:
         """
         Match (exactly from the current position)
         """
@@ -167,9 +168,9 @@ class FInput:
 
     def find(
         self,
-        pattern: re.Pattern[str],
+        pattern: PatternT,
         this_line: bool = False,
-    ) -> re.Match[str] | None:
+    ) -> MatchT | None:
         """
         Find the first occurance of a pattern, might be far away.
 
@@ -187,9 +188,7 @@ class FInput:
 
         return pattern.search(self.content, pos=irange.start, endpos=irange.end)
 
-    def find_between(
-        self, pattern: re.Pattern[str], irange: InputRange
-    ) -> re.Match[str] | None:
+    def find_between(self, pattern: PatternT, irange: InputRange) -> MatchT | None:
         """
         Find the first occurance of a pattern, might be far away.
         """
@@ -288,7 +287,7 @@ class FInput:
         assert not isinstance(self.range, DiscontigousRange)
         self.range = DiscontigousRange(self.range.start, self.range.end)
 
-    def match_and_add_hole(self, pattern: re.Pattern[str]) -> re.Match[str] | None:
+    def match_and_add_hole(self, pattern: PatternT) -> MatchT | None:
         """
         Find the first occurance of a pattern in a discontigous range.
 

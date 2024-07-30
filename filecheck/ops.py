@@ -62,7 +62,8 @@ class UOp:
     micro-ops, thse make up the filecheck matching logic
     """
 
-    pass
+    def get_literal(self, vars: dict[str, str | int]) -> str:
+        raise NotImplementedError()
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,6 +73,9 @@ class Literal(UOp):
     """
 
     content: str
+
+    def get_literal(self, vars: dict[str, str | int]) -> str:
+        return self.content
 
 
 @dataclass(frozen=True, slots=True)
@@ -115,6 +119,9 @@ class Subst(UOp):
     """
 
     variable: str
+
+    def get_literal(self, vars: dict[str, str | int]) -> str:
+        return str(vars.get(self.variable))
 
 
 @dataclass(frozen=True, slots=True)
