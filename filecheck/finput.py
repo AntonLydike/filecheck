@@ -10,6 +10,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Iterable
 
+from filecheck.colors import FMT
 from filecheck.options import Options
 
 
@@ -288,6 +289,14 @@ class FInput:
         if match is not None:
             self.range.add_hole(InputRange(match.start(0), match.end(0)))
         return match
+
+    def print_current_range(self):
+        end = self.range.start
+        for a, b in self.range.ranges():
+            yield f"{FMT.GRAY}{self.content[end:a]}{FMT.RESET}"
+            yield f"{self.content[a:b]}"
+            end = b
+        yield f"{FMT.GRAY}{self.content[end:self.range.end]}{FMT.RESET}"
 
     def advance_to_last_hole(self):
         """
