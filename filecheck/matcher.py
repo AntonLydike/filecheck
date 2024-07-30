@@ -127,7 +127,10 @@ class Matcher:
             print("Current position at " + self.file.print_line(), file=sys.stderr)
 
             if self.file.is_discontigous():
-                print("\nCurrently matching in:", file=sys.stderr)
+                print(
+                    "\nCurrently matching in range (grey is already matched):",
+                    file=sys.stderr,
+                )
                 print("".join(self.file.print_current_range()), file=sys.stderr)
 
             # try to look for a shorter match, and print that if possible
@@ -148,7 +151,10 @@ class Matcher:
                 file=sys.stderr,
             )
             if self.file.is_discontigous():
-                print("\nCurrently matching in:", file=sys.stderr)
+                print(
+                    "\nCurrently matching in range (grey is already matched):",
+                    file=sys.stderr,
+                )
                 print("".join(self.file.print_current_range()), file=sys.stderr)
             return 1
 
