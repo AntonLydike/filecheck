@@ -167,35 +167,14 @@ class LiteralMatcher:
         If zero or more characters at the beginning of string match this regular expression, return a corresponding
         Match. Return None if the string does not match the pattern; note that this is different from a zero-length
         match.
+
+        `re.match` is only used by `CHECK-NEXT`, which will always set the `match_on_next_line` flag, so we can safely
+        skip implementing the general case here (which is very similar to search otherwise).
         """
-        if self.match_on_next_line:
-            if string[pos] == "\n":
-                pos += 1
-            new_endpos = string.find("\n", pos, endpos)
-            if new_endpos == -1:
-                new_endpos = endpos
-            return self.search(string, pos, new_endpos)
-
-        if string.startswith(self.pattern, pos, endpos):
-            return LiteralMatch(pos, self.pattern)
-
-        if self.strict_whitespace:
-            return None
-
-        # match space insensitive
-        match_pos = pos
-        parts = re.split(r"\s+", self.pattern)
-        # for each part but not the last one, check the part and eat whitespace
-        for part in parts[:-1]:
-            # check that we start with the part
-            if not string.startswith(part, match_pos, endpos):
-                return None
-            match_pos += len(part)
-            # then eat space
-            while string[match_pos].isspace():
-                match_pos += 1
-        # check last part of pattern
-        if not string.startswith(parts[-1], match_pos, endpos):
-            return None
-        match_pos += len(parts[-1])
-        return LiteralMatch(pos, string[pos:match_pos])
+        assert self.match_on_next_line
+        if string[pos] == "\n":
+            pos += 1
+        new_endpos = string.find("\n", pos, endpos)
+        if new_endpos == -1:
+            new_endpos = endpos
+        return self.search(string, pos, new_endpos)

@@ -89,6 +89,7 @@ def compile_uops(
         elif isinstance(uop, NumSubst):
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
+
     if not requires_regex:
         literal = "".join(uop.get_literal(variables) for uop in check.uops)
         assert not captures
