@@ -32,7 +32,15 @@ def compile_uops(
         return CHECK_EMPTY_EXPR, dict()
 
     captures: dict[str, tuple[int, VALUE_MAPPER_T]] = dict()
-    requires_regex: bool = False
+
+    # see if this can be reduced to a simple literal match, which means that we don't need to compile a regex at all
+    if can_be_constant_folded(check, variables):
+        # grab all the literal parts of the pattern (which are the entire pattern)
+        literal = "".join(uop.get_literal(variables) for uop in check.uops)
+        return (
+            LiteralMatcher(literal, opts.strict_whitespace, check.name == "NEXT"),
+            captures,
+        )
 
     for uop in check.uops:
         if isinstance(uop, Literal):
@@ -47,7 +55,6 @@ def compile_uops(
                 expr.append(
                     re.sub(r"(\\ )+", " ", re.escape(uop.content)).replace(" ", r"\s+")
                 )
-
         elif isinstance(uop, RE):
             # For regexes, we must make sure that we count the number of capture groups
             # present, so that we know which ones contain the Captures, and which ones
@@ -61,7 +68,6 @@ def compile_uops(
                 groups += 1
             else:
                 expr.append(uop.content)
-            requires_regex = True
         elif isinstance(uop, Capture):
             # record the group we capture in the dictionary
             captures[uop.name] = (groups + 1, uop.value_mapper)
@@ -72,12 +78,10 @@ def compile_uops(
             # match the pattern. Luckily, python regex has backwards references.
             expr.append(f"({uop.pattern})")
             groups += len(UNESCAPED_BRACKETS.findall(uop.pattern)) + 1
-            requires_regex = True
         elif isinstance(uop, Subst):
             # if we have substitutions, check if the variable is defined in this line
             if uop.variable in captures:
                 expr.append(f"\\{captures[uop.variable][0]}")
-                requires_regex = True
             else:
                 # otherwise match immediate
                 if uop.variable not in variables:
@@ -90,15 +94,23 @@ def compile_uops(
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
 
-    if not requires_regex:
-        literal = "".join(uop.get_literal(variables) for uop in check.uops)
-        assert not captures
-        return (
-            LiteralMatcher(literal, opts.strict_whitespace, check.name == "NEXT"),
-            captures,
-        )
-
     try:
         return re.compile("".join(expr)), captures
     except re.error:
         raise CheckError(f"Malformed regex expression: '{''.join(expr)}'", check)
+
+
+def can_be_constant_folded(check: CheckOp, vars: dict[str, str | int]) -> bool:
+    """
+    Checks to see if a CheckOp is only composed of constant expressible parts, so only
+    string literals and pattern substitutions are allowed.
+
+    Note that all pattern substitutions must by definition not be from captures on the same line,
+    as no capture ops are allowed.
+    """
+    for op in check.uops:
+        if isinstance(op, (RE, Capture, NumSubst)):
+            return False
+        if isinstance(op, Subst) and op.variable not in vars:
+            return False
+    return True
