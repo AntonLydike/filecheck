@@ -1,17 +1,22 @@
 import re
+from typing import TypeAlias
 
 from filecheck.error import CheckError
 from filecheck.ops import Literal, RE, Capture, NumSubst, Subst, CheckOp, VALUE_MAPPER_T
 from filecheck.options import Options
+from filecheck.regex import LiteralMatcher, LiteralMatch
 
 UNESCAPED_BRACKETS = re.compile(r"^\(|[^\\]\(")
 
 CHECK_EMPTY_EXPR = re.compile(r"[^\n]*\n\n")
 
+PatternT: TypeAlias = re.Pattern[str] | LiteralMatcher
+MatchT: TypeAlias = re.Match[str] | LiteralMatch
+
 
 def compile_uops(
     check: CheckOp, variables: dict[str, str | int], opts: Options
-) -> tuple[re.Pattern[str], dict[str, tuple[int, VALUE_MAPPER_T]]]:
+) -> tuple[PatternT, dict[str, tuple[int, VALUE_MAPPER_T]]]:
     """
     Compile a series of uops, given a set of variables, to a regex pattern and an
     extraction dictionary.
@@ -27,6 +32,7 @@ def compile_uops(
         return CHECK_EMPTY_EXPR, dict()
 
     captures: dict[str, tuple[int, VALUE_MAPPER_T]] = dict()
+    requires_regex: bool = False
 
     for uop in check.uops:
         if isinstance(uop, Literal):
@@ -55,6 +61,7 @@ def compile_uops(
                 groups += 1
             else:
                 expr.append(uop.content)
+            requires_regex = True
         elif isinstance(uop, Capture):
             # record the group we capture in the dictionary
             captures[uop.name] = (groups + 1, uop.value_mapper)
@@ -65,10 +72,12 @@ def compile_uops(
             # match the pattern. Luckily, python regex has backwards references.
             expr.append(f"({uop.pattern})")
             groups += len(UNESCAPED_BRACKETS.findall(uop.pattern)) + 1
+            requires_regex = True
         elif isinstance(uop, Subst):
             # if we have substitutions, check if the variable is defined in this line
             if uop.variable in captures:
                 expr.append(f"\\{captures[uop.variable][0]}")
+                requires_regex = True
             else:
                 # otherwise match immediate
                 if uop.variable not in variables:
@@ -80,6 +89,14 @@ def compile_uops(
         elif isinstance(uop, NumSubst):
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
+    if not requires_regex:
+        literal = "".join(uop.get_literal(variables) for uop in check.uops)
+        assert not captures
+        return (
+            LiteralMatcher(literal, opts.strict_whitespace, check.name == "NEXT"),
+            captures,
+        )
+
     try:
         return re.compile("".join(expr)), captures
     except re.error:
