@@ -50,7 +50,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `--allow-empty`
   - [ ] `--color` Colored output is supported and automatically detected. No support for the flag.
 - **Base Features:**
-  - [X] Regex patterns (Bugs: [#7](https://github.com/AntonLydike/filecheck/issues/7), [#9](https://github.com/AntonLydike/filecheck/issues/9))
+  - [X] Regex patterns
   - [X] Captures and Capture Matches (Bug: [#11](https://github.com/AntonLydike/filecheck/issues/11))
   - [X] Numeric Captures
   - [ ] Numeric Substitutions (jesus christ, wtf man) (Tracked: [#21](https://github.com/AntonLydike/filecheck/issues/21))
