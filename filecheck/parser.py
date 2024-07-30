@@ -19,7 +19,8 @@ from filecheck.regex import (
 def pattern_for_opts(opts: Options) -> tuple[re.Pattern[str], re.Pattern[str]]:
     prefixes = f"({'|'.join(map(re.escape, opts.check_prefixes))})"
     return re.compile(
-        prefixes
+        r"(^|[^a-zA-Z])"
+        + prefixes
         + r"(-(DAG|COUNT-\d+|NOT|EMPTY|NEXT|SAME|LABEL))?(\{LITERAL})?:\s?([^\n]*)\n?"
     ), re.compile(f"({'|'.join(map(re.escape, opts.comment_prefixes))}).*{prefixes}")
 
@@ -86,10 +87,10 @@ class Parser(Iterator[CheckOp]):
             # no check line = skip
             if match is None:
                 continue
-            prefix = match.group(1)
-            kind = match.group(3)
-            literal = match.group(4)
-            arg = match.group(5)
+            prefix = match.group(2)
+            kind = match.group(4)
+            literal = match.group(5)
+            arg = match.group(6)
             if kind is None:
                 kind = "CHECK"
             if arg is None:

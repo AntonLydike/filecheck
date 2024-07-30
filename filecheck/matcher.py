@@ -126,6 +126,13 @@ class Matcher:
             )
             print("Current position at " + self.file.print_line(), file=sys.stderr)
 
+            if self.file.is_discontigous():
+                print(
+                    "\nCurrently matching in range (grey is already matched):",
+                    file=sys.stderr,
+                )
+                print("".join(self.file.print_current_range()), file=sys.stderr)
+
             # try to look for a shorter match, and print that if possible
             prefix_match = self.find_prefix_match_for(ex.op)
             if prefix_match is not None:
@@ -143,6 +150,12 @@ class Matcher:
                 self.file.print_line(ex.match.start(0), ex.match.end(0)),
                 file=sys.stderr,
             )
+            if self.file.is_discontigous():
+                print(
+                    "\nCurrently matching in range (grey is already matched):",
+                    file=sys.stderr,
+                )
+                print("".join(self.file.print_current_range()), file=sys.stderr)
             return 1
 
         return 0
