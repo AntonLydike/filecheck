@@ -81,6 +81,7 @@ def compile_uops(
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
     try:
-        return re.compile("".join(expr)), captures
+        # compile with MULTILINE flag, so that `^` and `$` can match start/end of line correctly
+        return re.compile("".join(expr), flags=re.MULTILINE), captures
     except re.error:
         raise CheckError(f"Malformed regex expression: '{''.join(expr)}'", check)
