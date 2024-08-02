@@ -370,15 +370,14 @@ class Matcher:
         """
         count = 0
         for op in uops:
-            match op:
-                case Subst(variable):
-                    count += len(str(self.ctx.live_variables.get(variable, "")))
-                case Literal(content):
-                    count += len(content)
-                case RE(content):
-                    count += len(content)
-                case Capture(pattern):
-                    count += len(pattern)
-                case _:
-                    continue
+            if isinstance(op, Subst):
+                count += len(str(self.ctx.live_variables.get(op.variable, "")))
+            elif isinstance(op, Literal):
+                count += len(op.content)
+            elif isinstance(op, RE):
+                count += len(op.content)
+            elif isinstance(op, Capture):
+                count += len(op.pattern)
+            else:
+                continue
         return count

@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, TypeAlias
+from typing import Callable
 
 from filecheck.options import Options
 
 OP_KINDS = ("DAG", "COUNT", "NOT", "EMPTY", "NEXT", "SAME", "LABEL", "CHECK")
 
-VALUE_MAPPER_T: TypeAlias = Callable[[str], int] | Callable[[str], str]
+VALUE_MAPPER_T = Callable[[str], int] | Callable[[str], str]
 
 
 @dataclass(slots=True)
