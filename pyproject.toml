@@ -16,10 +16,12 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.8"
 
+[tool.poetry.group.dev]
+optional = true
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"
 lit = "^18.1.8"
-pre-commit = "^3.7.1"
+pre-commit = { version = "^3.7.1", python = "^3.9" }
 pyright = "^1.1.370"
 pytest = "^8.2.2"
 
