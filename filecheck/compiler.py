@@ -1,17 +1,22 @@
 import re
+from typing import TypeAlias
 
 from filecheck.error import CheckError
 from filecheck.ops import Literal, RE, Capture, NumSubst, Subst, CheckOp, VALUE_MAPPER_T
 from filecheck.options import Options
+from filecheck.regex import LiteralMatcher, LiteralMatch
 
 UNESCAPED_BRACKETS = re.compile(r"^\(|[^\\]\(")
 
 CHECK_EMPTY_EXPR = re.compile(r"[^\n]*\n\n")
 
+PatternT: TypeAlias = re.Pattern[str] | LiteralMatcher
+MatchT: TypeAlias = re.Match[str] | LiteralMatch
+
 
 def compile_uops(
     check: CheckOp, variables: dict[str, str | int], opts: Options
-) -> tuple[re.Pattern[str], dict[str, tuple[int, VALUE_MAPPER_T]]]:
+) -> tuple[PatternT, dict[str, tuple[int, VALUE_MAPPER_T]]]:
     """
     Compile a series of uops, given a set of variables, to a regex pattern and an
     extraction dictionary.
@@ -28,6 +33,15 @@ def compile_uops(
 
     captures: dict[str, tuple[int, VALUE_MAPPER_T]] = dict()
 
+    # see if this can be reduced to a simple literal match, which means that we don't need to compile a regex at all
+    if can_be_constant_folded(check, variables):
+        # grab all the literal parts of the pattern (which are the entire pattern)
+        literal = "".join(uop.get_literal(variables) for uop in check.uops)
+        return (
+            LiteralMatcher(literal, opts.strict_whitespace, check.name == "NEXT"),
+            captures,
+        )
+
     for uop in check.uops:
         if isinstance(uop, Literal):
             # literals are matched as is
@@ -41,7 +55,6 @@ def compile_uops(
                 expr.append(
                     re.sub(r"(\\ )+", " ", re.escape(uop.content)).replace(" ", r"\s+")
                 )
-
         elif isinstance(uop, RE):
             # For regexes, we must make sure that we count the number of capture groups
             # present, so that we know which ones contain the Captures, and which ones
@@ -80,8 +93,25 @@ def compile_uops(
         elif isinstance(uop, NumSubst):
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
+
     try:
         # compile with MULTILINE flag, so that `^` and `$` can match start/end of line correctly
         return re.compile("".join(expr), flags=re.MULTILINE), captures
     except re.error:
         raise CheckError(f"Malformed regex expression: '{''.join(expr)}'", check)
+
+
+def can_be_constant_folded(check: CheckOp, vars: dict[str, str | int]) -> bool:
+    """
+    Checks to see if a CheckOp is only composed of constant expressible parts, so only
+    string literals and pattern substitutions are allowed.
+
+    Note that all pattern substitutions must by definition not be from captures on the same line,
+    as no capture ops are allowed.
+    """
+    for op in check.uops:
+        if isinstance(op, (RE, Capture, NumSubst)):
+            return False
+        if isinstance(op, Subst) and op.variable not in vars:
+            return False
+    return True
