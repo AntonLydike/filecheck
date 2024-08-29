@@ -37,7 +37,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] `--strict-whitespace` (Bug: [#6](https://github.com/AntonLydike/filecheck/issues/6))
   - [ ] `--ignore-case`
   - [ ] `--implicit-check-not` (Tracked: [#20](https://github.com/AntonLydike/filecheck/issues/20))
-  - [ ] `--dump-input` (Tracked: [#19](https://github.com/AntonLydike/filecheck/issues/19))
+  - [X] `--dump-input` (only `fail` and `never` supported)
   - [ ] `--dump-input-context`
   - [ ] `--dump-input-filter`
   - [X] `--enable-var-scope`
