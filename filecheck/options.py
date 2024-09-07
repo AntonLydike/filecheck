@@ -1,11 +1,18 @@
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import Enum, auto
 from typing import Iterable
 import os
 
 
 class Extension(Enum):
     MLIR_REGEX_CLS = "MLIR_REGEX_CLS"
+
+
+class DumpInputKind(Enum):
+    HELP = auto()
+    ALWAYS = auto()
+    NEVER = auto()
+    FAIL = auto()
 
 
 @dataclass
@@ -19,6 +26,7 @@ class Options:
     match_full_lines: bool = False
     allow_empty: bool = False
     reject_empty_vars: bool = False
+    dump_input: DumpInputKind = DumpInputKind.FAIL
     variables: dict[str, str | int] = field(default_factory=dict)
 
     extensions: set[Extension] = field(default_factory=set)
@@ -32,7 +40,7 @@ class Options:
         extensions: set[Extension] = set()
         for ext in self.extensions:
             if isinstance(ext, str):
-                if ext in set(e.name for e in Extension):
+                if ext in set(e.value for e in Extension):
                     extensions.add(
                         Extension[ext]  # pyright: ignore[reportArgumentType]
                     )
@@ -43,6 +51,14 @@ class Options:
             else:
                 extensions.add(ext)
         self.extensions = extensions
+        if isinstance(self.dump_input, str):
+            name: str = self.dump_input.upper()
+            if name in set(d.name for d in DumpInputKind):
+                self.dump_input = DumpInputKind[name]
+            else:
+                raise RuntimeError(
+                    f'Unknown value supplied for dump-input flag: "{name}"'
+                )
 
     def readable_input_file(self):
         if self.input_file == "-":

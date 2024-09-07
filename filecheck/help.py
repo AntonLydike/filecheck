@@ -12,6 +12,11 @@ FLAGS:
                                   match.
 --match-full-lines              : Expect every check line to match the whole line.
 --reject-empty-vars             : Raise an error when a value captures an empty string.
+--dump-input                    : Dump the input to stderr annotated with helpful
+                                  information depending on the context. Allowed values
+                                  are help, always, never, fail. Default is fail.
+                                  Only fail and never is currently supported in this
+                                  version of filecheck.
 
 ARGUMENTS:
 check-file                      : The file from which the check lines are to be read

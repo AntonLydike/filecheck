@@ -1,0 +1,12 @@
+// RUN: strip-comments.sh %s | filecheck %s --dump-input never --check-prefix RIGHT | filecheck %s --allow-empty --check-prefix EMPTY
+// RUN: strip-comments.sh %s | exfail filecheck %s --dump-input never --check-prefix WRONG | filecheck %s --allow-empty --check-prefix EMPTY
+// RUN: strip-comments.sh %s | filecheck %s --dump-input fail --check-prefix RIGHT | filecheck %s --allow-empty --check-prefix EMPTY
+// RUN: strip-comments.sh %s | exfail filecheck %s --dump-input fail --check-prefix WRONG | filecheck %s --allow-empty --check-prefix HAS-OUTPUT
+// RUN: strip-comments.sh %s | filecheck %s --dump-input help --check-prefix RIGHT 2>&1 | filecheck %s --allow-empty --check-prefix UNKNOWN-FLAG -DFLAG=help
+// RUN: strip-comments.sh %s | filecheck %s --dump-input always --check-prefix RIGHT 2>&1 | filecheck %s --allow-empty --check-prefix UNKNOWN-FLAG -DFLAG=always
+test
+// RIGHT: test
+// WRONG: wrong
+// EMPTY-NOT: {{.+}}
+// HAS-OUTPUT: error: Couldn't match "wrong".
+// UNKNOWN-FLAG: Warning: Unsupported dump-input flag: [[FLAG]]

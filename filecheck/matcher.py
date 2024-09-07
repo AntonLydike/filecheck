@@ -1,8 +1,9 @@
 import re
+import os
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, TextIO
 
 from filecheck.compiler import compile_uops
 from filecheck.error import CheckError, ParseError, ErrorOnMatch
@@ -10,7 +11,7 @@ from filecheck.finput import FInput, InputRange
 from filecheck.logging import warn
 from filecheck.colors import ERR, FMT
 from filecheck.ops import CheckOp, CountOp, Literal, Subst, UOp, RE, Capture
-from filecheck.options import Options
+from filecheck.options import Options, DumpInputKind
 from filecheck.parser import Parser
 from filecheck.preprocess import Preprocessor
 
@@ -45,6 +46,8 @@ class Matcher:
 
     ctx: Context = field(default_factory=Context)
 
+    stderr: TextIO = field(init=False)
+
     @classmethod
     def from_opts(cls, opts: Options):
         """
@@ -56,6 +59,15 @@ class Matcher:
 
     def __post_init__(self):
         self.ctx.live_variables.update(self.opts.variables)
+        if self.opts.dump_input == DumpInputKind.NEVER:
+            self.stderr = open(os.devnull, "w")
+        else:
+            self.stderr = sys.stderr
+        if self.opts.dump_input in (DumpInputKind.ALWAYS, DumpInputKind.HELP):
+            warn(
+                f"Unsupported dump-input flag: {self.opts.dump_input.name.lower()}",
+                opts=self.opts,
+            )
 
     def run(self) -> int:
         """
@@ -67,7 +79,7 @@ class Matcher:
             if self.file.content in ("", "\n"):
                 print(
                     f"{ERR}filecheck error:{FMT.RESET} '{self.opts.readable_input_file()}' is empty.",
-                    file=sys.stderr,
+                    file=self.stderr,
                 )
                 return 1
 
@@ -81,16 +93,16 @@ class Matcher:
                     pref = f"prefixes {', '.join(self.opts.check_prefixes)}"
                 print(
                     f"{ERR}filecheck error:{FMT.RESET} No check strings found with {pref}:",
-                    file=sys.stderr,
+                    file=self.stderr,
                 )
                 return 2
         except ParseError as ex:
             print(
                 f"{self.opts.match_filename}:{ex.line_no}:{ex.offset} {ex.message}",
-                file=sys.stderr,
+                file=self.stderr,
             )
-            print(ex.offending_line.rstrip("\n"), file=sys.stderr)
-            print(" " * (ex.offset - 1) + "^", file=sys.stderr)
+            print(ex.offending_line.rstrip("\n"), file=self.stderr)
+            print(" " * (ex.offset - 1) + "^", file=self.stderr)
             return 1
 
         function_table: dict[str, Callable[[CheckOp], None]] = {
@@ -122,40 +134,40 @@ class Matcher:
         except CheckError as ex:
             print(
                 f"{self.opts.match_filename}:{ex.op.source_line}: {ERR}error:{FMT.RESET} {ex.message}",
-                file=sys.stderr,
+                file=self.stderr,
             )
-            print("Current position at " + self.file.print_line(), file=sys.stderr)
+            print("Current position at " + self.file.print_line(), file=self.stderr)
 
             if self.file.is_discontigous():
                 print(
                     "\nCurrently matching in range (grey is already matched):",
-                    file=sys.stderr,
+                    file=self.stderr,
                 )
-                print("".join(self.file.print_current_range()), file=sys.stderr)
+                print("".join(self.file.print_current_range()), file=self.stderr)
 
             # try to look for a shorter match, and print that if possible
             prefix_match = self.find_prefix_match_for(ex.op)
             if prefix_match is not None:
-                print("Possible intended match at:", file=sys.stderr)
-                print(self.file.print_line(prefix_match.start(0)), file=sys.stderr)
+                print("Possible intended match at:", file=self.stderr)
+                print(self.file.print_line(prefix_match.start(0)), file=self.stderr)
 
             return 1
         except ErrorOnMatch as ex:
             print(
                 f"{self.opts.match_filename}:{ex.op.source_line}: {ERR}error:{FMT.RESET} {ex.message}",
-                file=sys.stderr,
+                file=self.stderr,
             )
-            print("Matching at: ", end="", file=sys.stderr)
+            print("Matching at: ", end="", file=self.stderr)
             print(
                 self.file.print_line(ex.match.start(0), ex.match.end(0)),
-                file=sys.stderr,
+                file=self.stderr,
             )
             if self.file.is_discontigous():
                 print(
                     "\nCurrently matching in range (grey is already matched):",
-                    file=sys.stderr,
+                    file=self.stderr,
                 )
-                print("".join(self.file.print_current_range()), file=sys.stderr)
+                print("".join(self.file.print_current_range()), file=self.stderr)
             return 1
 
         return 0
