@@ -1,0 +1,9 @@
+// RUN: strip-comments.sh %s | filecheck %s
+
+ax
+x, x,
+x,
+
+// CHECK: ax
+// CHECK-NEXT: x, x,
+// CHECK: x,
