@@ -39,7 +39,9 @@ def compile_uops(
                 # but I still want to regex escape them
                 # and re.sub doesn't let me insert \s into the new string for some reason......
                 expr.append(
-                    re.sub(r"(\\ )+", " ", re.escape(uop.content)).replace(" ", r"\s+")
+                    re.sub(r"(\\ )+", " ", re.escape(uop.content)).replace(
+                        " ", r"[ \t\v]+"
+                    ),
                 )
 
         elif isinstance(uop, RE):

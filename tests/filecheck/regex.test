@@ -15,7 +15,7 @@ test 123, 123
 test a b
 // CHECK: test {{a|b}} {{b|c}}
 
-test something
+test something 
 // CHECK: test something {{$}}
 
 test another thing
