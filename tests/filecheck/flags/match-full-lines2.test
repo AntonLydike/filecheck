@@ -1,0 +1,6 @@
+// RUN: strip-comments.sh %s | exfail filecheck --match-full-lines %s | filecheck --check-prefix DIAG %s
+
+abc
+// CHECK: b
+// DIAG: match-full-lines2.test:4
+// DIAG: error: Didn't match whole line
