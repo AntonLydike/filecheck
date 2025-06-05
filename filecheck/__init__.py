@@ -52,7 +52,11 @@ if sys.version_info < (3, 10):
                 # included.  Other special entries such as '__weakref__' are
                 # intentionally omitted, matching the behaviour of the real
                 # implementation.
-                cls.__slots__ = tuple(cls.__annotations__.keys())  # type: ignore[attr-defined]
+                # ``__annotations__`` may be missing when the class has no
+                # annotated fields (e.g. a pure marker class).  Guard against
+                # that to stay compatible with such definitions.
+                annotations = getattr(cls, "__annotations__", {})
+                cls.__slots__ = tuple(annotations.keys())  # type: ignore[attr-defined]
 
             # Delegate to the original decorator *after* modifying the class.
             return _orig_dataclass(cls, **kwargs)

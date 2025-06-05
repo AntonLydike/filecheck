@@ -1,3 +1,8 @@
+# See the comment in compiler.py for why we enable postponed evaluation of
+# annotations on Python 3.9.
+
+from __future__ import annotations
+
 import re
 import os
 import sys
