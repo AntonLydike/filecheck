@@ -1,3 +1,10 @@
+# NOTE: Forward-references & PEP-604 union types (``A | B``) are only fully
+# supported starting with Python 3.10.  By enabling ``annotations`` from the
+# future we postpone evaluation of type annotations so that the syntax parses
+# fine on Python 3.9 as plain strings.
+
+from __future__ import annotations
+
 import re
 
 from filecheck.error import CheckError
