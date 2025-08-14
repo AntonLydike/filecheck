@@ -1,0 +1,17 @@
+// RUN: grep -n "^" %s | filecheck %s
+// No need to remove comments, but we need the line numbers.
+// Hence prefixing them with grep.
+foo CHECK: [[# @LINE]]:foo
+// trailing white space is also allowed
+foobar CHECK: [[# @LINE ]]:foobar
+
+// CHECK: [[# @LINE + 1]]:foo
+foo
+
+foo
+// CHECK: [[# @LINE - 1]]:foo
+
+foo1
+foo2
+// CHECK: [[# @LINE - 2]]:foo1
+// CHECK-NOT: [[# @LINE]]:foo
