@@ -5,9 +5,8 @@
 This tries to be as close a clone of LLVMs FileCheck as possible, without going crazy. It currently passes 1576 out of
 1645 (95.8%) of LLVMs MLIR filecheck tests. We are tracking all 69 remaining test failures in GitHub issues.
 
-There are some features that are left out for now (e.g.a
-[pseudo-numeric variables](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables) and
-parts of [numeric substitution](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)
+There are some features that are left out for now (e.g. parts of
+[numeric substitution](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)
 ).
 
 The codebase is fully type checked by `pyright`, and automatically formatted using `black`. We aim to have tests
@@ -53,7 +52,7 @@ Here's an overview of all FileCheck features and their implementation status.
   - [X] Regex patterns
   - [X] Captures and Capture Matches (Bug: [#11](https://github.com/AntonLydike/filecheck/issues/11))
   - [X] Numeric Captures
-  - [ ] Numeric Substitutions (jesus christ, wtf man) (Tracked: [#21](https://github.com/AntonLydike/filecheck/issues/21))
+  - [ ] Numeric Substitutions (jesus christ, wtf man) (Tracked: [#45](https://github.com/AntonLydike/filecheck/issues/45))
   - [X] Literal matching (`CHECK{LITERAL}`)
   - [X] Weird regex features (`[:xdigits:]` and friends)
   - [X] Correct(?) handling of matching check lines (Bug: [#22](https://github.com/AntonLydike/filecheck/issues/22))
@@ -112,7 +111,7 @@ This is used in 2 out of 1645 tests in our benchmark (upstream MLIR tests).
 
 While our filecheck supports [numeric capture](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)
 (`[[#%.3x,VAR:]]` will capture a three-digit hex number), we don't support arithmetic expressions on these captured
-values at the moment. We also don't support the "Pseudo Numeric Variable" `@LINE`.
+values at the moment.
 
 ### Special Feature Flags:
 

@@ -7,7 +7,17 @@ from dataclasses import dataclass, field
 from typing import Iterator, TextIO
 
 from filecheck.error import ParseError
-from filecheck.ops import CheckOp, Literal, RE, Capture, Subst, NumSubst, UOp, CountOp
+from filecheck.ops import (
+    CheckOp,
+    Literal,
+    RE,
+    Capture,
+    PseudoVar,
+    Subst,
+    NumSubst,
+    UOp,
+    CountOp,
+)
 from filecheck.options import Options, parse_argv_options, Extension
 from filecheck.regex import (
     posix_to_python_regex,
@@ -42,6 +52,10 @@ NUMERIC_CAPTURE_PATTERN = re.compile(
 NUMERIC_SUBST_PATTERN = re.compile(
     r"\[\[#(\$?[a-zA-Z_][a-zA-Z0-9_]*)([a-z0-9 +\-()]*)]]"
 )
+
+# pseudo numeric variable, see:
+# https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables
+PSEUDO_NUMERIC_VARIABLE = re.compile(r"\[\[# @LINE ?(([+-]) (\d+))?]]")
 
 LINE_SPLIT_RE = split = re.compile(r"(\{\{|\[\[\$?[#a-zA-Z_]|]|})")
 
@@ -198,6 +212,16 @@ class Parser(Iterator[CheckOp]):
                         match.group(2), match.group(3)
                     )
                     uops.append(Capture(match.group(5), pattern, mapper))
+                # check if we are a pseudo numeric variable: [[# @line [+-] <offset>]]
+                # see https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-pseudo-numeric-variables
+                elif match := PSEUDO_NUMERIC_VARIABLE.fullmatch(part):
+                    if match.group(1):
+                        offset = int(match.group(3))
+                        if match.group(2) == "-":
+                            offset *= -1
+                        uops.append(PseudoVar(offset))
+                    else:
+                        uops.append(PseudoVar(0))
                 else:
                     raise ParseError(
                         f"Invalid substitution block, unknown format: {part}",

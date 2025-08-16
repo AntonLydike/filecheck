@@ -1,7 +1,16 @@
 import re
 
 from filecheck.error import CheckError
-from filecheck.ops import Literal, RE, Capture, NumSubst, Subst, CheckOp, VALUE_MAPPER_T
+from filecheck.ops import (
+    Literal,
+    RE,
+    Capture,
+    NumSubst,
+    PseudoVar,
+    Subst,
+    CheckOp,
+    VALUE_MAPPER_T,
+)
 from filecheck.options import Options
 
 UNESCAPED_BRACKETS = re.compile(r"^\(|[^\\]\(")
@@ -79,6 +88,8 @@ def compile_uops(
                         check,
                     )
                 expr.append(re.escape(str(variables[uop.variable])))
+        elif isinstance(uop, PseudoVar):
+            expr.append(f"{check.source_line + uop.offset}")
         elif isinstance(uop, NumSubst):
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
