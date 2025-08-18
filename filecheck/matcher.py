@@ -51,7 +51,7 @@ class Matcher:
     @classmethod
     def from_opts(cls, opts: Options):
         """
-        Construct a matcher form an options object.
+        Construct a matcher from an options object.
         """
         ops = Parser.from_opts(opts)
         fin = FInput.from_opts(opts)
