@@ -59,7 +59,7 @@ class CountOp(CheckOp):
 @dataclass(frozen=True, slots=True)
 class UOp:
     """
-    micro-ops, thse make up the filecheck matching logic
+    micro-ops, these make up the filecheck matching logic
     """
 
     pass
