@@ -262,8 +262,8 @@ class FInput:
         # line ending check
         if self.content.startswith("\n", self.range.start):
             return True
-        # eof check
-        if self.range.start == len(self.content) - 1:
+        # eof check (covers a final line without a trailing newline)
+        if self.range.start >= len(self.content) - 1:
             return True
         return False
 

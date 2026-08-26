@@ -30,9 +30,7 @@ def compile_uops(
     """
     groups = 0
     expr: list[str] = []
-    if check.name == "NEXT":
-        expr.append(r"\n?[^\n]*")
-    elif check.name == "EMPTY":
+    if check.name == "EMPTY":
         return CHECK_EMPTY_EXPR, dict()
 
     captures: dict[str, tuple[int, VALUE_MAPPER_T]] = dict()
@@ -93,8 +91,19 @@ def compile_uops(
         elif isinstance(uop, NumSubst):
             # we don't do numerical substitutions yet
             raise NotImplementedError("Numerical substitutions not supported!")
+    pattern = "".join(expr)
+    if opts.match_full_lines:
+        # require the check to match a whole line: the pattern must start at the
+        # beginning of a line and end at the end of a line. Partial matches on
+        # other lines are then simply skipped instead of being an error (fixes #47).
+        # (non-capturing lookaround, so capture group numbering is unaffected)
+        pattern = f"(?:(?<=\\n)|(?=\\A)){pattern}(?=\\n|\\Z)"
+    if check.name == "NEXT":
+        # the prefix is added after the full-line anchors, so that the anchors
+        # apply to the check itself and not to the skipped leading characters
+        pattern = r"\n?[^\n]*" + pattern
     try:
         # compile with MULTILINE flag, so that `^` and `$` can match start/end of line correctly
-        return re.compile("".join(expr), flags=re.MULTILINE), captures
+        return re.compile(pattern, flags=re.MULTILINE), captures
     except re.error:
-        raise CheckError(f"Malformed regex expression: '{''.join(expr)}'", check)
+        raise CheckError(f"Malformed regex expression: '{pattern}'", check)

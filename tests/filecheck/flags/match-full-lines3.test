@@ -1,0 +1,11 @@
+// partially matching lines must be skipped, not an error (issue #47)
+// RUN: strip-comments.sh %s | filecheck --match-full-lines %s
+
+abcd
+0123
+// CHECK: 12
+12
+// CHECK-DAG: x
+x
+// CHECK-DAG: y
+y
