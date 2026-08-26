@@ -210,7 +210,11 @@ class Matcher:
                 # reset the state
                 self.ctx.negative_matches_start = None
                 self.ctx.negative_matches_stack = []
-        if self.opts.match_full_lines:
+        if self.opts.match_full_lines and op.name != "DAG":
+            # DAG ops don't advance the file position to the end of the match
+            # (they record holes instead), so the position check doesn't apply.
+            # For all other ops the pattern is anchored to full lines by the
+            # compiler, so this should never trigger.
             if not self.file.is_end_of_line():
                 raise CheckError(
                     "Didn't match whole line",

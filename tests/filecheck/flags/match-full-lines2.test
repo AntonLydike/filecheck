@@ -3,4 +3,4 @@
 abc
 // CHECK: b
 // DIAG: match-full-lines2.test:4
-// DIAG: error: Didn't match whole line
+// DIAG: error: Couldn't match "b"
