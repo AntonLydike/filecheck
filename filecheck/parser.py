@@ -109,17 +109,21 @@ class Parser(Iterator[CheckOp]):
                 kind = "CHECK"
             if arg is None:
                 arg = ""
+            if not self.opts.strict_whitespace:
+                arg = arg.strip()
+
             # verify that non-empty checks have an actual thing to match
             if kind != "EMPTY":
                 if not arg:
+                    offset = (
+                        match.start(4) if match.group(4) is not None else match.start(2)
+                    )
                     raise ParseError(
-                        f"found empty check string with prefix '{kind}:'",
+                        f"found empty check string with prefix '{prefix}:'",
                         self.line_no,
-                        match.start(4),
+                        offset,
                         line,
                     )
-            if not self.opts.strict_whitespace:
-                arg = arg.strip()
 
             # parse the uops, but only if we are not in LITERAL mode
             uops: list[UOp]
