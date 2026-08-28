@@ -14,23 +14,20 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.10', '3.11', '3.12', '3.13']
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
     - name: Install package locally
       run: |
-        pip install poetry
+        set -xeu -o pipefail
+        poetry env use $(which python${{ matrix.python-version }})
         poetry install
+        poetry run python --version
 
     - name: Execute lit tests
       run: |
