@@ -60,7 +60,7 @@ class Matcher:
     def __post_init__(self):
         self.ctx.live_variables.update(self.opts.variables)
         if self.opts.dump_input == DumpInputKind.NEVER:
-            self.stderr = open(os.devnull, "w")
+            self.stderr = open(os.devnull, "w", encoding="utf-8")
         else:
             self.stderr = sys.stderr
         if self.opts.dump_input in (DumpInputKind.ALWAYS, DumpInputKind.HELP):

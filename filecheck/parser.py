@@ -2,6 +2,7 @@
 parser for filecheck syntax
 """
 
+import io
 import re
 from dataclasses import dataclass, field
 from typing import Iterator, TextIO
@@ -78,7 +79,9 @@ class Parser(Iterator[CheckOp]):
 
     @classmethod
     def from_opts(cls, opts: Options):
-        return Parser(opts, open(opts.match_filename), *pattern_for_opts(opts))
+        with open(opts.match_filename, encoding="utf-8") as f:
+            content = f.read()
+        return Parser(opts, io.StringIO(content), *pattern_for_opts(opts))
 
     def __next__(self) -> CheckOp:
         """

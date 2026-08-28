@@ -1,0 +1,6 @@
+// RUN: strip-comments.sh %s | exfail filecheck %s --allow-empty --comment-prefixes=RUN,COM,DIAG | filecheck %s --check-prefix DIAG
+
+foo 🚀 bar
+
+// CHECK: foo ❤ bar
+// DIAG: error: Couldn't match "foo ❤ bar"
