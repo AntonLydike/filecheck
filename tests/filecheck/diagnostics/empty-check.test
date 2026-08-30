@@ -1,0 +1,10 @@
+// RUN: strip-comments.sh %s | exfail filecheck %s --comment-prefixes=RUN,COM,DIAG | filecheck %s --check-prefix=DIAG
+
+foo
+bar
+
+// CHECK: foo
+// CHECK-NEXT:   
+// CHECK: bar
+
+// DIAG: found empty check string with prefix 'CHECK:'
