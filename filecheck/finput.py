@@ -134,12 +134,16 @@ class FInput:
         """
         Create a FInput object from options objects
         """
-        # treat - as stding
+        # treat - as stdin
         if opts.input_file == "-":
-            f = sys.stdin
+            if hasattr(sys.stdin, "buffer"):
+                content = sys.stdin.buffer.read().decode("utf-8")
+            else:
+                content = sys.stdin.read()
         else:
-            f = open(opts.input_file, "r")
-        return FInput(opts.input_file, FInput.canonicalize_line_ends(f.read()))
+            with open(opts.input_file, "r", encoding="utf-8") as f:
+                content = f.read()
+        return FInput(opts.input_file, FInput.canonicalize_line_ends(content))
 
     def advance_by(self, dist: int):
         """

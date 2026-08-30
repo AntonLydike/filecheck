@@ -1,0 +1,7 @@
+// RUN: echo "foo ❤ 🗺️ bar" | filecheck %s
+// RUN: echo "prefix 日本語 測試 suffix" | filecheck %s --check-prefix=UNICODE
+// RUN: filecheck %s --input-file %s --check-prefix=SELF
+
+// CHECK: foo ❤ 🗺️ bar
+// UNICODE: prefix 日本語 測試 suffix
+// SELF: echo "foo ❤ 🗺️ bar"
