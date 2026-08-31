@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Iterable
+from typing import Iterable, Union
 import os
 
 
@@ -27,7 +27,7 @@ class Options:
     allow_empty: bool = False
     reject_empty_vars: bool = False
     dump_input: DumpInputKind = DumpInputKind.FAIL
-    variables: dict[str, str | int] = field(default_factory=dict)
+    variables: dict[str, Union[str, int]] = field(default_factory=dict)
 
     extensions: set[Extension] = field(default_factory=set)
 
@@ -76,8 +76,8 @@ def parse_argv_options(argv: list[str]) -> Options:
     valid_fields.add("check_prefix")
 
     # final options to return
-    opts: dict[str, str | bool] = {}
-    variables: dict[str, str | int] = {}
+    opts: dict[str, Union[str, bool]] = {}
+    variables: dict[str, Union[str, int]] = {}
     # args that were consumed
     remove: set[int] = set()
     argv = list(normalise_args(argv))
