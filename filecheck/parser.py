@@ -32,7 +32,7 @@ def pattern_for_opts(opts: Options) -> tuple[re.Pattern[str], re.Pattern[str]]:
     return re.compile(
         r"(^|[^a-zA-Z-_])"
         + prefixes
-        + r"(-(DAG|COUNT-\d+|NOT|EMPTY|NEXT|SAME|LABEL))?(\{LITERAL})?:\s?([^\n]*)\n?"
+        + r"(-(DAG|COUNT-\d+|NOT|EMPTY|NEXT|SAME|LABEL))?(\{LITERAL})?:([^\n]*)\n?"
     ), re.compile(f"({'|'.join(map(re.escape, opts.comment_prefixes))}).*{prefixes}")
 
 
@@ -112,7 +112,7 @@ class Parser(Iterator[CheckOp]):
                 kind = "CHECK"
             if arg is None:
                 arg = ""
-            if not self.opts.strict_whitespace:
+            if not (self.opts.strict_whitespace and self.opts.match_full_lines):
                 arg = arg.strip()
 
             # verify that non-empty checks have an actual thing to match

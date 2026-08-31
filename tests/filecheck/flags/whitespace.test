@@ -1,0 +1,55 @@
+// RUN: strip-comments.sh %s | filecheck %s
+// RUN: strip-comments.sh %s | filecheck %s --strict-whitespace --check-prefix=STRICT
+// RUN: strip-comments.sh %s | filecheck %s --strict-whitespace --match-full-lines --check-prefix=FULL
+
+// Regression test for whitespace handling around the check string.
+//
+// Upstream FileCheck strips leading and trailing whitespace from the check
+// string in every mode, except when both --strict-whitespace and
+// --match-full-lines are given, in which case whitespace is part of the
+// pattern. A space (or several) between the prefix and the pattern must
+// therefore not require the input line to start with whitespace.
+//
+// Every check uses a unique token with its own input line, so no check
+// can match another case's line. In full-line strict mode the pattern is
+// anchored to the whole line, so those lines carry the leading whitespace
+// the pattern requires.
+
+// -- leading whitespace after the colon is ignored ---------------------
+
+// no space after the colon
+// CHECK:A
+// STRICT:A
+// FULL:A
+A
+
+// one space
+// CHECK: B
+// STRICT: B
+B
+// FULL: C
+ C
+
+// two spaces
+// CHECK:  D
+// STRICT:  D
+D
+// FULL:  E
+  E
+
+// three spaces
+// CHECK:   F
+// STRICT:   F
+F
+// FULL:   G
+   G
+
+// -- trailing whitespace in the pattern is ignored ---------------------
+
+// the lines below carry an intentional trailing space
+// trailing spaces are stripped from the pattern
+// CHECK:H 
+// STRICT:H 
+// ... except in full-line strict mode, where they are part of the pattern
+// FULL:H 
+H 
