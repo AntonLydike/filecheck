@@ -8,9 +8,6 @@
 name: CI - xdsl Integration
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 permissions:
