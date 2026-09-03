@@ -1,0 +1,98 @@
+# Integration test: verify that our filecheck passes xDSL's test suite.
+# xDSL (https://github.com/xdslproject/xdsl) uses this package as its
+# FileCheck implementation, so we run its lit suite against our build.
+#
+# This check is informational and does not block pull requests: if the suite
+# fails, a comment with the failing tests is posted on the PR instead.
+
+name: CI - xdsl Integration
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  xdsl-tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Clone xDSL
+      run: git clone --depth 1 https://github.com/xdslproject/xdsl
+
+    - name: Install xDSL with dev dependencies
+      run: pip install "./xdsl[dev]"
+
+    # xDSL pins filecheck==1.0.3 in its dev dependencies, so install our build
+    # on top of it without letting pip re-resolve the pin
+    - name: Install our filecheck over the pinned one
+      run: |
+        pip install --force-reinstall --no-deps .
+        filecheck --version
+
+    # informational: do not let failures block the pull request
+    - name: Execute xDSL lit tests
+      id: lit
+      continue-on-error: true
+      working-directory: xdsl
+      run: lit -v tests/filecheck/ > lit-output.txt 2>&1
+
+    - name: Comment failing tests on the PR
+      if: github.event_name == 'pull_request' && steps.lit.outcome == 'failure'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR: ${{ github.event.pull_request.number }}
+      run: |
+        # replace any previous comment from this job
+        gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR/comments" \
+          --jq '.[] | select(.body | contains("<!-- xdsl-integration -->")) | .id' \
+          | while read -r id; do gh api -X DELETE "repos/$GITHUB_REPOSITORY/issues/comments/$id"; done
+        python3 - > comment.md <<'EOF'
+        import pathlib, re, sys
+
+        out = pathlib.Path("xdsl/lit-output.txt").read_text()
+
+        # detailed failure blocks: "**... TEST 'x' FAILED **..." ... "**..."
+        blocks = re.findall(
+            r"\*{10,} TEST .*? FAILED \*{10,}\n.*?(?=\n\*{10,}\n)", out, re.S
+        )
+        summary = re.findall(
+            r"^(Failed Tests \(\d+\):$|  xDSL :: .*|Total Discovered Tests:.*|  Failed: .*)$",
+            out, re.M,
+        )
+        sys.stdout.write(
+            "<!-- xdsl-integration -->\n"
+            "⚠️ **Heads-up for downstream:** this change makes tests in "
+            "[xDSL's lit suite](https://github.com/xdslproject/xdsl) fail. "
+            "xDSL uses this package as its `filecheck` implementation, so "
+            "this may break its CI.\n\n"
+            "This check is informational and does not block the pull request.\n\n"
+            "<details>\n<summary>Failed test output (click to expand)</summary>\n\n"
+            "```\n"
+            + "\n".join(summary) + "\n\n" + "\n".join(blocks) + "\n```\n\n"
+            "</details>\n"
+        )
+        EOF
+        gh pr comment "$PR" --body-file comment.md
+
+    - name: Remove stale comment if the suite now passes
+      if: github.event_name == 'pull_request' && steps.lit.outcome == 'success'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR: ${{ github.event.pull_request.number }}
+      run: |
+        gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR/comments" \
+          --jq '.[] | select(.body | contains("<!-- xdsl-integration -->")) | .id' \
+          | while read -r id; do gh api -X DELETE "repos/$GITHUB_REPOSITORY/issues/comments/$id"; done
