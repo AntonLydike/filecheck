@@ -1,0 +1,55 @@
+// RUN: strip-comments.sh %s | filecheck %s --match-full-lines
+// RUN: strip-comments.sh %s | filecheck %s --strict-whitespace --match-full-lines --check-prefix=STRICT
+
+// Regression test for full-line matching with input lines that carry
+// leading/trailing whitespace.
+//
+// Upstream FileCheck anchors the check to the whole line when
+// --match-full-lines is given, but in non-strict mode leading and trailing
+// whitespace on the *input line* is still ignored (the pattern is anchored
+// with `^ *... *$` after whitespace canonicalization). So an indented line
+// (like most of MLIR's output) must still match an unindented check string.
+//
+// With --strict-whitespace, whitespace is significant and the input line must
+// match the check string byte-for-byte; with --strict-whitespace
+// --match-full-lines the spaces after the colon are part of the check
+// string, so the STRICT checks below carry the whitespace explicitly.
+//
+// Every check uses a unique token, so no check can match another case's line.
+
+// -- leading whitespace on the input line is ignored (non-strict) ---------
+
+// CHECK: leading spaces are ignored
+   leading spaces are ignored
+// STRICT:   leading spaces are ignored
+   leading spaces are ignored
+
+// CHECK: tabs count as leading whitespace
+	tabs count as leading whitespace
+// STRICT:	tabs count as leading whitespace
+	tabs count as leading whitespace
+
+// -- trailing whitespace on the input line is ignored (non-strict) --------
+
+// CHECK: trailing spaces are ignored
+trailing spaces are ignored 
+// STRICT:trailing spaces are ignored 
+trailing spaces are ignored 
+
+// -- leading and trailing at once ----------------------------------------
+
+// CHECK: leading and trailing whitespace together
+   leading and trailing whitespace together  
+// STRICT:   leading and trailing whitespace together  
+   leading and trailing whitespace together  
+
+// -- leading whitespace on a CHECK-NEXT line (non-strict) ----------------
+
+// CHECK: first line of the pair
+// CHECK-NEXT:   second line is indented
+first line of the pair
+   second line is indented
+// STRICT:first line of the pair
+// STRICT-NEXT:   second line is indented
+first line of the pair
+   second line is indented
