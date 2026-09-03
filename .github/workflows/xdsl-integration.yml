@@ -33,10 +33,11 @@ jobs:
       run: git clone --depth 1 https://github.com/xdslproject/xdsl
 
     - name: Install xDSL with dev dependencies
-      run: pip install "./xdsl[dev]"
+      run: |
+        pip install "./xdsl[dev]"
+        # the "Toy" package provides toyc, used by the Toy compiler examples
+        pip install "./xdsl/docs/Toy"
 
-    # xDSL pins filecheck==1.0.3 in its dev dependencies, so install our build
-    # on top of it without letting pip re-resolve the pin
     - name: Install our filecheck over the pinned one
       run: |
         pip install --force-reinstall --no-deps .
@@ -47,7 +48,7 @@ jobs:
       id: lit
       continue-on-error: true
       working-directory: xdsl
-      run: lit -v tests/filecheck/ > lit-output.txt 2>&1
+      run: lit -v tests/filecheck/ docs/Toy/examples/ > lit-output.txt 2>&1
 
     - name: Comment failing tests on the PR
       if: github.event_name == 'pull_request' && steps.lit.outcome == 'failure'
@@ -69,7 +70,7 @@ jobs:
             r"\*{10,} TEST .*? FAILED \*{10,}\n.*?(?=\n\*{10,}\n)", out, re.S
         )
         summary = re.findall(
-            r"^(Failed Tests \(\d+\):$|  xDSL :: .*|Total Discovered Tests:.*|  Failed: .*)$",
+            r"^(Failed Tests \(\d+\):$|  \S+ :: .*|Total Discovered Tests:.*|  Failed: .*)$",
             out, re.M,
         )
         sys.stdout.write(
