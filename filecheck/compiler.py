@@ -93,11 +93,10 @@ def compile_uops(
             raise NotImplementedError("Numerical substitutions not supported!")
     pattern = "".join(expr)
     if opts.match_full_lines:
-        # require the check to match a whole line: the pattern must start at the
-        # beginning of a line and end at the end of a line. Partial matches on
-        # other lines are then simply skipped instead of being an error (fixes #47).
-        # (non-capturing lookaround, so capture group numbering is unaffected)
-        pattern = f"(?:(?<=\\n)|(?=\\A)){pattern}(?=\\n|\\Z)"
+        # anchor the pattern to the whole line; in non-strict mode, leading and
+        # trailing whitespace in the input is ignored, like upstream
+        ws = "" if opts.strict_whitespace else r"[ \t\v]*"
+        pattern = rf"(?:(?<=\n)|(?=\A)){ws}{pattern}{ws}(?=\n|\Z)"
     if check.name == "NEXT":
         # the prefix is added after the full-line anchors, so that the anchors
         # apply to the check itself and not to the skipped leading characters
