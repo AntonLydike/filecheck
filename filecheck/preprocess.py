@@ -14,7 +14,7 @@ class Preprocessor:
     input: FInput
     checks: Sequence[CheckOp]
     range: InputRange = field(
-        default=None,  # pyright: ignore[reportArgumentType]
+        default=None,  # pyright: ignore[reportAssignmentType]
         init=False,
     )
 

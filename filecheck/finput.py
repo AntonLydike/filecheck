@@ -44,7 +44,9 @@ class DiscontigousRange(InputRange):
     A range with holes in it.
     """
 
-    _holes: list[InputRange] = field(default_factory=list, init=False, repr=False)
+    _holes: list[InputRange] = field(
+        default_factory=list[InputRange], init=False, repr=False
+    )
     """
     This will only ever contain InputRange, never DiscontigousRange.
 
@@ -123,7 +125,7 @@ class FInput:
     line_no: int = field(default=0)
 
     range: InputRange = field(default_factory=lambda: InputRange(0, sys.maxsize))
-    ranges: list[InputRange] = field(default_factory=list)
+    ranges: list[InputRange] = field(default_factory=list[InputRange])
 
     @staticmethod
     def canonicalize_line_ends(text: str) -> str:

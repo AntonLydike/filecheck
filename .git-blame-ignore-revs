@@ -1,0 +1,5 @@
+# Commits to ignore in git blame.
+# See: https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revs-file<file>
+#
+# Reformat with ruff format (switch from black to ruff)
+4fe4df6a47f38f783566b7d44e4e671cc0eb1a20

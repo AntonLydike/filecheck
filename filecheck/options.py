@@ -27,9 +27,9 @@ class Options:
     allow_empty: bool = False
     reject_empty_vars: bool = False
     dump_input: DumpInputKind = DumpInputKind.FAIL
-    variables: dict[str, str | int] = field(default_factory=dict)
+    variables: dict[str, str | int] = field(default_factory=dict[str, str | int])
 
-    extensions: set[Extension] = field(default_factory=set)
+    extensions: set[Extension] = field(default_factory=set[Extension])
 
     def __post_init__(self):
         # make sure we split the comment prefixes

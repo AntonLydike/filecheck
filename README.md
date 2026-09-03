@@ -9,7 +9,7 @@ There are some features that are left out for now (e.g. parts of
 [numeric substitution](https://llvm.org/docs/CommandGuide/FileCheck.html#filecheck-numeric-substitution-blocks)
 ).
 
-The codebase is fully type checked by `pyright`, and automatically formatted using `black`. We aim to have tests
+The codebase is fully type checked by `pyright`, and automatically formatted using `ruff format`. We aim to have tests
 covering everything from normal matching down to error messages.
 
 Install by running `pip install filecheck`.
@@ -71,7 +71,7 @@ Here's an overview of all FileCheck features and their implementation status.
     - [ ] Wrong/unkown command line arguments
     - [ ] Print variables and their origin in error messages
 - **Infrastructure:**
-  - [X] Formatting: black
+  - [X] Formatting: ruff
   - [X] Pyright
   - [X] `pre-commit`
   - [X] CI for everything

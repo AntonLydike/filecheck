@@ -22,9 +22,9 @@ class Context:
     A context object, carrying life variables and such
     """
 
-    live_variables: dict[str, str | int] = field(default_factory=dict)
+    live_variables: dict[str, str | int] = field(default_factory=dict[str, str | int])
 
-    negative_matches_stack: list[CheckOp] = field(default_factory=list)
+    negative_matches_stack: list[CheckOp] = field(default_factory=list[CheckOp])
     """
     Keep a stack of CHECK-NOTs around, as we only know the range on which to match
     once we hit the next non-negative check-line.

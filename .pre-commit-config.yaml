@@ -9,8 +9,8 @@ repos:
         exclude: "tests/filecheck/flags/match-full-lines.test"
     -   id: trailing-whitespace
         exclude: "tests/filecheck"
--   repo: https://github.com/psf/black-pre-commit-mirror
-    rev: 24.2.0
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.5
     hooks:
-    -   id: black
+    -   id: ruff-format
         exclude: "/(__pycache__|.asv|venv|build|tests/filecheck)/"
