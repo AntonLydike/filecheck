@@ -1,6 +1,6 @@
 [project]
 name = "filecheck"
-version = "1.0.5"
+version = "1.0.6"
 description = "A Python-native clone of LLVMs FileCheck tool"
 authors = [{ name = "Anton Lydike", email = "me@antonlydike.de" }]
 license = "Apache-2.0"
