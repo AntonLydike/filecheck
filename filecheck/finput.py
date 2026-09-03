@@ -312,7 +312,7 @@ class FInput:
             yield f"{FMT.GRAY}{self.content[end:a]}{FMT.RESET}"
             yield f"{self.content[a:b]}"
             end = b
-        yield f"{FMT.GRAY}{self.content[end:self.range.end]}{FMT.RESET}"
+        yield f"{FMT.GRAY}{self.content[end : self.range.end]}{FMT.RESET}"
 
     def advance_to_last_hole(self):
         """

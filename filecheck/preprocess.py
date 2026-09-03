@@ -14,7 +14,8 @@ class Preprocessor:
     input: FInput
     checks: Sequence[CheckOp]
     range: InputRange = field(
-        default=None, init=False  # pyright: ignore[reportArgumentType]
+        default=None,  # pyright: ignore[reportArgumentType]
+        init=False,
     )
 
     def __post_init__(self):

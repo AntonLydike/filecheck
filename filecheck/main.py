@@ -10,9 +10,7 @@ from filecheck.options import parse_argv_options
 def main(argv: list[str] | None = None):
     for stream in (sys.stdout, sys.stderr):
         if isinstance(stream, io.TextIOWrapper):
-            stream.reconfigure(
-                encoding="utf-8"
-            )  # pyright: ignore[reportUnknownMemberType]
+            stream.reconfigure(encoding="utf-8")  # pyright: ignore[reportUnknownMemberType]
 
     if argv is None:
         argv = sys.argv
